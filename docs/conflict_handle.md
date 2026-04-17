@@ -25,7 +25,7 @@ The hierarchy is: **manifest list → manifests → data files**.
 
 ## Phase 0 — Load the table
 
-> **Code location:** `CatalogIO.LoadTable()` interface — `table/table.go:63`
+> **Code location:** `CatalogIO.LoadTable()` interface — `table/table.go:63`; `CatalogIO` interface definition — `table/table.go:63`
 
 ```go
 tbl, _ := cat.LoadTable(ctx, []string{"warehouse", "events"})
@@ -39,7 +39,7 @@ pointer to the catalog (`tbl.cat`) for later use. The table is at **snapshot 100
 
 ## Phase 1 — Create a Transaction
 
-> **Code location:** `Table.NewTransaction()` — `table/table.go:108`; `Transaction` struct (fields: `pendingProducers`, `mx`, `committed`) — `table/transaction.go:70`; `Transaction.apply()` — `table/transaction.go:85`
+> **Code location:** `Table.NewTransaction()` — `table/table.go:108`; `Transaction` struct (fields: `pendingProducers`, `mx`, `committed`) — `table/transaction.go:68`; `Transaction.apply()` — `table/transaction.go:87`
 
 ```go
 txn := tbl.NewTransaction()
@@ -71,7 +71,7 @@ Four things happen in sequence. None of them touch the catalog.
 
 ### Step 2a — Write the Parquet data file to S3
 
-> **Code location:** `Transaction.Append()` — `table/transaction.go:327`; `recordsToDataFiles()` — `table/arrow_utils.go:1455`
+> **Code location:** `Transaction.Append()` — `table/transaction.go:331`; `recordsToDataFiles()` — `table/arrow_utils.go:1464`
 
 ```go
 itr := recordsToDataFiles(ctx, tbl.Location(), t.meta, recordWritingArgs{...})
@@ -97,7 +97,7 @@ maintenance job. It is never referenced by any snapshot, so readers ignore it.
 
 ### Step 2b — Write the Manifest Avro file to S3
 
-> **Code location:** `snapshotProducer.commit()` — `table/snapshot_producers.go:824`; `snapshotProducer.manifests()` — `table/snapshot_producers.go:621`; `snapshotProducer.manifestProducer()` — `table/snapshot_producers.go:721`
+> **Code location:** `snapshotProducer.commit()` — `table/snapshot_producers.go:814`; `snapshotProducer.manifests()` — `table/snapshot_producers.go:611`; `snapshotProducer.manifestProducer()` — `table/snapshot_producers.go:711`
 
 Inside `appendFiles.commit(ctx)` → `sp.manifests(ctx)` → `sp.manifestProducer()`:
 
@@ -117,7 +117,7 @@ without re-reading your Parquet files.
 
 ### Step 2c — Write the Manifest List Avro file to S3
 
-> **Code location:** `newManifestListFileName()` — `table/snapshot_producers.go:70`; `sp.lastManifestListPath` set inside `snapshotProducer.commit()` — `table/snapshot_producers.go:824`
+> **Code location:** `newManifestListFileName()` — `table/snapshot_producers.go:70`; `sp.lastManifestListPath` set inside `snapshotProducer.commit()` — `table/snapshot_producers.go:814`
 
 Still inside `appendFiles.commit(ctx)`:
 
@@ -143,7 +143,7 @@ S3 after this step:
 
 ### Step 2d — Register with the transaction, do NOT touch the catalog yet
 
-> **Code location:** `t.pendingProducers = append(...)` — `table/transaction.go:355`; `t.apply()` — `table/transaction.go:85`
+> **Code location:** `t.pendingProducers = append(...)` — `table/transaction.go:358`; `t.apply()` — `table/transaction.go:87`
 
 ```go
 t.pendingProducers = append(t.pendingProducers, appendFiles)
@@ -164,13 +164,13 @@ the table still at snapshot 100?") and stores the update instructions in
 
 ## Phase 3 — `Commit()` is called
 
-> **Code location:** `Transaction.Commit()` — `table/transaction.go:1650`
+> **Code location:** `Transaction.Commit()` — `table/transaction.go:1687`
 
 Both Worker A and Worker B call `txn.Commit(ctx)` at roughly the same time.
 
 ### The mutex
 
-> **Code location:** `table/transaction.go:1651`
+> **Code location:** `table/transaction.go:1688`
 
 ```go
 t.mx.Lock()
@@ -183,7 +183,7 @@ on the same table — that is handled by the catalog's compare-and-swap.
 
 ### Route decision
 
-> **Code location:** `table/transaction.go:1666`
+> **Code location:** `table/transaction.go:1703`
 
 ```go
 if len(t.pendingProducers) > 0 {
@@ -199,7 +199,7 @@ Because `Append` added a producer to `pendingProducers`, both workers go into
 
 ## Phase 4 — The OCC retry loop
 
-> **Code location:** `Transaction.commitWithRetry()` — `table/transaction.go:1705`; retry property constants — `table/properties.go:97`; orphaned manifest-list cleanup (deferred) — `table/transaction.go:1715`
+> **Code location:** `Transaction.commitWithRetry()` — `table/transaction.go:1742`; retry property constants — `table/properties.go:97`; orphaned manifest-list cleanup (deferred) — `table/transaction.go:1748`
 
 ```go
 func (t *Transaction) commitWithRetry(ctx context.Context,
@@ -250,7 +250,7 @@ if !errors.Is(err, ErrCommitConflict) {
 
 Worker B records its manifest list as a potential orphan:
 
-> **Code location:** `ErrCommitConflict` definition — `table/table.go:51`; retryable-error check — `table/transaction.go:1851`
+> **Code location:** `ErrCommitConflict` definition — `table/table.go:50`; retryable-error check — `table/transaction.go:1888`
 
 ```go
 orphanedManifestLists = ["s3://.../snap-200-0-def456.avro"]
@@ -260,7 +260,7 @@ orphanedManifestLists = ["s3://.../snap-200-0-def456.avro"]
 
 **1. Sleep (exponential backoff with ±25% jitter)**
 
-> **Code location:** `occBackoff()` — `table/transaction.go:1866`; sleep call — `table/transaction.go:1776`
+> **Code location:** `occBackoff()` — `table/transaction.go:1904`; sleep call — `table/transaction.go:1797`
 
 ```go
 sleepDuration := occBackoff(0, 100, 60000)
@@ -269,7 +269,7 @@ sleepDuration := occBackoff(0, 100, 60000)
 
 **2. Reload the table**
 
-> **Code location:** `table/transaction.go:1784`
+> **Code location:** `table/transaction.go:1803`
 
 ```go
 freshTbl, _ := t.tbl.cat.LoadTable(ctx, t.tbl.identifier)
@@ -278,7 +278,7 @@ freshTbl, _ := t.tbl.cat.LoadTable(ctx, t.tbl.identifier)
 
 **3. Rebase the producer** (`sp.rebase(freshMeta)`)
 
-> **Code location:** call — `table/transaction.go:1789`; `snapshotProducer.rebase()` impl — `table/snapshot_producers.go:911`
+> **Code location:** call — `table/transaction.go:1811`; `snapshotProducer.rebase()` impl — `table/snapshot_producers.go:910`
 
 ```go
 sp.attempt++               // 0 → 1, so next manifest list gets a new filename
@@ -289,7 +289,7 @@ sp.parentSnapshotID = 200  // was 100, now points to Worker A's snapshot
 
 **4. Validate conflicts**
 
-> **Code location:** call — `table/transaction.go:1797`; `fastAppendFiles.validateConflicts()` — `table/snapshot_producers.go:119`
+> **Code location:** call — `table/transaction.go:1820`; `fastAppendFiles.validateConflicts()` — `table/snapshot_producers.go:109`
 
 ```go
 isolationLevel := "serializable"  // table default
@@ -306,7 +306,7 @@ func (fa *fastAppendFiles) validateConflicts(...) error {
 
 **5. Regenerate the manifest list** (`sp.commit(ctx)`)
 
-> **Code location:** call — `table/transaction.go:1812`; `snapshotProducer.commit()` impl — `table/snapshot_producers.go:824`
+> **Code location:** call — `table/transaction.go:1849`; `snapshotProducer.commit()` impl — `table/snapshot_producers.go:814`
 
 `existingManifests()` now reads from snapshot 200 (Worker A's snapshot) and
 returns Worker A's manifests as existing ones. Worker B's own manifest
@@ -340,7 +340,7 @@ Worker B succeeds.
 
 **7. Clean up the orphaned manifest list from attempt 0**
 
-> **Code location:** deferred cleanup — `table/transaction.go:1718`
+> **Code location:** deferred cleanup — `table/transaction.go:1748`
 
 ```go
 // defer runs on return and deletes:
@@ -381,7 +381,7 @@ If Worker B was doing a **Delete** (`txn.Delete(filter, ...)`) instead of an
 Append, the `validateConflicts` step does actual work. The producer is
 `overwriteFiles` with `deleteExpression` set to the filter.
 
-> **Code location:** `overwriteFiles.validateConflicts()` — `table/snapshot_producers.go:291`; `ErrConflictingWrite` definition — `table/table.go:56`
+> **Code location:** `overwriteFiles.validateConflicts()` — `table/snapshot_producers.go:281`; `ErrConflictingWrite` definition — `table/table.go:57`
 
 ```go
 func (of *overwriteFiles) validateConflicts(ctx, originalBase, freshMeta, _) error {
@@ -421,7 +421,7 @@ a fresh transaction.
 
 Set it per table:
 
-> **Code location:** `WriteDeleteIsolationLevelKey` — `table/properties.go:82`; `Transaction.SetProperties()` — `table/transaction.go:155`
+> **Code location:** `WriteDeleteIsolationLevelKey` — `table/properties.go:82`; `Transaction.SetProperties()` — `table/transaction.go:155`; `IsolationLevelSnapshot` — `table/properties.go:91`
 
 ```go
 txn.SetProperties(iceberg.Properties{

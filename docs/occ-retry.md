@@ -134,28 +134,96 @@ delay = min(max-wait-ms, min-wait-ms × 2^attempt) × random(0.75 … 1.25)
 
 ## Which operations are retried
 
-| Transaction method | Retried? | Why |
+Operations are divided into two groups: those that enter the OCC retry loop
+(`pendingProducers`), and those that commit in a single attempt as before.
+
+| Transaction method | Retried? | Conflict check on retry |
 |---|---|---|
-| `Append()` | Yes | FastAppend — appending new data never conflicts with other appends |
-| `AppendTable()` | Yes | Same as `Append()` |
-| `AddDataFiles()` | Yes | Same as `Append()` — data is pre-built by the caller |
-| `AddFiles()` | Yes | Same as `Append()` |
-| `ReplaceDataFiles()` | No | Overwrite — may conflict with concurrent deletes |
-| `ReplaceDataFilesWithDataFiles()` | No | Overwrite — same reason |
-| `ReplaceFiles()` | No | Overwrite — same reason |
+| `Append()` / `AppendTable()` | Yes | None — appending never conflicts with other appends |
+| `AddDataFiles()` | Yes | None — same as `Append()` |
+| `ReplaceDataFiles()` | Yes | `overwriteFiles.validateConflicts` — safe unless expression-based deletes overlap |
+| `ReplaceDataFilesWithDataFiles()` | Yes | `overwriteFiles.validateConflicts` — same |
+| `ReplaceFiles()` | Yes (when no delete files to remove) | Delegates to `ReplaceDataFilesWithDataFiles()`; not retried if positional-delete files are being removed |
+| `Delete()` | Yes | `overwriteFiles.validateConflicts` — behaviour depends on isolation level |
+| `RowDelta.Commit()` | Yes | `rowDeltaFiles.validateConflicts` — checks partition overlap when equality delete files are present |
+| `AddFiles()` | No | — |
+| `Overwrite()` / `OverwriteTable()` | No | — |
 | `SetProperties()` | No | Not a snapshot operation |
 | `UpdateSchema()` / `UpdateSpec()` | No | Structural changes, not snapshot operations |
-| `ExpireSnapshots()` | No | Asserts specific snapshot refs; not an append |
+| `ExpireSnapshots()` | No | Asserts specific snapshot refs, not an append |
 
-This mirrors Java's rule: only `FastAppend` and `MergeAppend` are free of conflict
-validation, so only those operations enter the retry loop.
+Operations that enter the retry loop use `validateConflicts` to decide whether a retry
+is semantically safe. Append-family operations always pass. Overwrite and delete
+operations may reject a retry with `ErrConflictingWrite` — see the next section.
+
+---
+
+## Semantic conflict detection
+
+Not every 409 is safe to retry. If Writer A is committing an expression-based delete
+("delete all rows where `status = 'cancelled'`") and Writer B just appended new rows
+matching that expression, retrying Writer A on top of Writer B's snapshot would silently
+leave those new rows undeleted. The retry loop detects this before re-attempting the
+commit.
+
+### How it works
+
+Every producer implements `validateConflicts`. It is called on each retry attempt after
+`rebase()` and before writing new manifest files.
+
+| Producer | Conflict check |
+|---|---|
+| `fastAppendFiles` (`Append`, `AddDataFiles`) | Always returns nil — appending never conflicts |
+| `overwriteFiles` (`ReplaceDataFiles`, `ReplaceDataFilesWithDataFiles`, `Delete` copy-on-write) | If `deleteExpression` is nil (file-based replacement): nil. Otherwise: scans files added by concurrent snapshots and returns `ErrConflictingWrite` if any match the expression |
+| `rowDeltaFiles` (`RowDelta.Commit()`) | If no equality delete files: nil. If `isolation-level=snapshot`: nil. Otherwise: checks whether concurrent snapshots added files in the same partitions as the equality deletes |
+
+### Two isolation levels
+
+Set `write.delete.isolation-level` as a table property (via `txn.SetProperties`) to
+control how aggressively conflict detection blocks equality-delete commits.
+
+| Level | Default? | Behaviour |
+|---|---|---|
+| `serializable` | Yes | "My deletes must cover every matching row, including rows added after I started." Commit is **rejected** with `ErrConflictingWrite` if a concurrent writer added data in a covered partition. |
+| `snapshot` | No | "My deletes only need to cover rows that existed when I opened the transaction." Concurrent appends in the same partition are ignored; the commit retries and succeeds. |
+
+**Example:**
+
+```go
+// Opt this table into snapshot isolation for bulk backfill deletes
+txn.SetProperties(iceberg.Properties{
+    table.WriteDeleteIsolationLevelKey: table.IsolationLevelSnapshot,
+})
+```
+
+**Concrete scenario** — partition `category='hot'` has 100 rows; Writer A builds an
+equality delete covering `event_id IN {1, 2, 3}`; while Writer A works, Writer B
+appends 50 new rows, some with `event_id=2`:
+
+| Level | Outcome |
+|---|---|
+| `serializable` | Writer A's commit is rejected. Rows with `event_id=2` from Writer B are not silently skipped. |
+| `snapshot` | Writer A's commit succeeds. Writer B's rows with `event_id=2` are **not** deleted and remain in the table. |
+
+Use `serializable` wherever correctness matters (CDC pipelines, data quality jobs).
+Use `snapshot` only for bulk backfills or analytics where best-effort semantics are
+acceptable.
+
+### `ErrConflictingWrite` vs `ErrCommitConflict`
+
+| Error | Meaning | Retryable by the library? |
+|---|---|---|
+| `table.ErrCommitConflict` | Pure CAS race — another writer committed first | Yes — the loop reloads and retries |
+| `table.ErrConflictingWrite` | Data correctness conflict — retrying would produce wrong results | No — returned immediately to caller |
+
+When you receive `ErrConflictingWrite`, you must reload the table, re-scan the data,
+recompute your delete expression, and start a fresh transaction.
 
 ---
 
 ## How to detect a conflict error in your code
 
-If you need to distinguish a commit conflict from other errors you can use
-`errors.Is()`:
+Use `errors.Is()` to distinguish the two conflict error types:
 
 ```go
 import (
@@ -164,11 +232,19 @@ import (
 )
 
 _, err := txn.Commit(ctx)
-if errors.Is(err, table.ErrCommitConflict) {
-    // the retry loop exhausted all attempts — all retries saw a 409
+switch {
+case errors.Is(err, table.ErrConflictingWrite):
+    // Data-correctness conflict. A concurrent writer added rows that your
+    // expression-based delete or overwrite would silently miss. You must
+    // reload the table, re-scan, recompute your operation, and start a
+    // fresh transaction.
+    log.Println("conflicting write — reload and retry the whole operation")
+case errors.Is(err, table.ErrCommitConflict):
+    // The OCC retry loop exhausted all allowed attempts. Every attempt saw a
+    // 409 from the catalog and none could be resolved by rebasing.
     log.Println("all retry attempts were rejected by the catalog")
-} else if err != nil {
-    // a different error (network failure, auth error, etc.)
+case err != nil:
+    // A different error: network failure, auth error, timeout, etc.
     log.Printf("commit failed for a non-conflict reason: %v", err)
 }
 ```
@@ -258,7 +334,6 @@ This runs four tests:
 | `TestConcurrentWritersOCCRetry` | Two goroutines append to the same table simultaneously. Both should succeed and the final table should contain both rows. |
 | `TestRetryTimeoutRespectsProperty` | Sets `total-timeout-ms=500` and verifies the property is honoured (commit either succeeds quickly or fails within the timeout window). |
 | `TestErrCommitConflictFromRestCatalog` | Verifies that `rest.ErrCommitFailed` wraps `table.ErrCommitConflict` — confirms the error chain is correct without relying on a network call. |
-
 ### Verify with Athena
 
 After running `TestConcurrentWritersOCCRetry`, both rows should be queryable through Amazon Athena. To check:
@@ -306,10 +381,14 @@ aws s3tables delete-table \
 
 | File | Change |
 |---|---|
-| `table/properties.go` | Added four `CommitRetry*` constants matching Java's `TableProperties.COMMIT_*` |
-| `table/table.go` | Added `ErrCommitConflict` sentinel error |
-| `table/snapshot_producers.go` | Added `attempt` counter, `lastManifestListPath` tracking, and `rebase()` method to `snapshotProducer` |
-| `table/transaction.go` | Added `pendingProducers` field; rewrote `Commit()` to dispatch to `commitWithRetry()`; added `occBackoff()` |
-| `catalog/rest/rest.go` | Changed `ErrCommitFailed` from a plain error to a type that wraps both `ErrRESTError` and `table.ErrCommitConflict` |
-| `table/occ_retry_test.go` | 10 unit tests — all run without any external infrastructure |
-| `table/occ_retry_aws_integration_test.go` | 4 integration tests — require real AWS S3 Tables (`-tags integration_aws`) |
+| `table/table.go` | Added `ErrCommitConflict` and `ErrConflictingWrite` sentinel errors |
+| `table/properties.go` | Added `CommitRetry*` constants and `WriteDeleteIsolationLevel*` constants (matching Java defaults) |
+| `table/transaction.go` | Added `pendingProducers` field; rewrote `Commit()` to dispatch to `commitWithRetry()`; added `occBackoff()`; registered all retryable operations |
+| `table/snapshot_producers.go` | Added `validateConflicts` to producer interface; implemented it for `fastAppendFiles`, `overwriteFiles`, and `rowDeltaFiles`; added `attempt` counter and `lastManifestListPath` tracking; added `rebase()` method; added `concurrentDataFiles`, `dataFilesAddedBySnapshot`, and `partitionsOverlap` helpers |
+| `table/row_delta.go` | Switched to `newRowDeltaFilesProducer`; registered producer in `pendingProducers`; updated doc comment |
+| `catalog/rest/rest.go` | Changed `ErrCommitFailed` from a plain error to a type that wraps both `ErrRESTError` and `table.ErrCommitConflict`; mapped HTTP 400 from `CommitTable` to `ErrCommitFailed` |
+| `schema.go` | Fixed data race in `MarshalJSON` — uses a local copy instead of mutating the shared `*Schema` |
+| `visitors.go` | Fixed data race in `ExpressionEvaluator` — creates a fresh `*exprEvaluator` per call instead of sharing one instance |
+| `table/occ_retry_test.go` | 10 unit tests for the basic OCC retry loop — run without external infrastructure |
+| `table/occ_issue830_regression_test.go` | 6 unit tests for semantic conflict detection: equality delete isolation levels, `ErrConflictingWrite` on expression overlap, partition-safe retries |
+| `table/occ_retry_aws_integration_test.go` | 4 integration tests requiring real AWS S3 Tables (`-tags integration_aws`) |
