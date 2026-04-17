@@ -905,7 +905,11 @@ func (sp *snapshotProducer) commit(ctx context.Context) (_ []Update, _ []Require
 
 	return []Update{
 			NewAddSnapshotUpdate(&snapshot),
-			NewSetSnapshotRefUpdate(branch, sp.snapshotID, BranchRef, -1, -1, -1),
+			// Use 0 (not -1) for the optional fields so they are omitted by
+			// `omitempty` in JSON marshalling. -1 is a sentinel meaning
+			// "no limit" internally, but strict catalogs such as AWS S3 Tables
+			// reject a payload that explicitly contains negative values.
+			NewSetSnapshotRefUpdate(branch, sp.snapshotID, BranchRef, 0, 0, 0),
 		}, []Requirement{
 			AssertRefSnapshotID(branch, sp.txn.meta.currentSnapshotID),
 		}, nil

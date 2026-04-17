@@ -980,8 +980,15 @@ func (r *Catalog) CommitTable(ctx context.Context, ident table.Identifier, requi
 	ret, err := doPost[payload, commitTableResponse](ctx, r.baseURI, []string{"namespaces", ns, "tables", tblName},
 		payload{Identifier: restIdentifier, Requirements: requirements, Updates: updates}, r.cl,
 		map[int]error{
-			http.StatusNotFound:            catalog.ErrNoSuchTable,
-			http.StatusConflict:            ErrCommitFailed,
+			http.StatusNotFound: catalog.ErrNoSuchTable,
+			// 409 is the canonical OCC conflict response per the Iceberg REST spec.
+			http.StatusConflict: ErrCommitFailed,
+			// Some catalog implementations (e.g. AWS S3 Tables) return 400 when
+			// a snapshot's sequence number is already in use due to a concurrent
+			// write, rather than returning a 409. Treat 400 as retryable here so
+			// that the OCC retry loop in doCommit can reload the table and
+			// re-submit with the correct sequence number.
+			http.StatusBadRequest:          ErrCommitFailed,
 			http.StatusInternalServerError: ErrCommitStateUnknown,
 			http.StatusBadGateway:          ErrCommitStateUnknown,
 			http.StatusServiceUnavailable:  ErrCommitStateUnknown,

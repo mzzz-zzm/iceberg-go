@@ -51,14 +51,6 @@ import (
 // catalogs return their conflict errors raw and will not trigger
 // retries until follow-up work wires them through (tracked under
 // issue #830).
-//
-// The retry loop in doCommit re-issues the original updates and
-// requirements unchanged. This recovers only from transient catalog
-// errors (dropped connections, brief 409 during leader election); it
-// does not yet refresh the table metadata between attempts, so a
-// contended commit whose AssertRefSnapshotID requirement has been
-// invalidated by a peer will fail deterministically on every retry.
-// Refresh-and-replay is tracked separately (issue #830).
 var ErrCommitFailed = errors.New("commit failed, refresh and try again")
 
 type FSysF func(ctx context.Context) (icebergio.IO, error)

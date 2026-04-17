@@ -294,7 +294,12 @@ func (s *Schema) MarshalJSON() ([]byte, error) {
 		ids = []int{}
 	}
 
+	// Use a value copy of the Alias so we never mutate the shared *Schema pointer.
+	// Mutating s.IdentifierFieldIDs directly would be a data race when two goroutines
+	// concurrently marshal the same schema (e.g. during parallel manifest writes).
 	type Alias Schema
+	aliasCopy := *(*Alias)(s)
+	aliasCopy.IdentifierFieldIDs = ids
 
 	aliasCopy := *(*Alias)(s)
 	aliasCopy.IdentifierFieldIDs = ids

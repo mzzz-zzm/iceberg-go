@@ -100,16 +100,12 @@ const (
 	MaxRefAgeMsDefault = math.MaxInt
 
 	// CommitNumRetriesKey is the number of commit retry attempts before
-	// giving up on ErrCommitFailed from the catalog.
-	//
-	// The default is 0 (no retries) until refresh-and-replay lands; a
-	// retry loop that reuses the original updates/requirements will
-	// fail deterministically on genuine OCC conflicts and only slow
-	// down the final error. Callers that observe transient catalog
-	// flakiness (dropped connections, brief 409 during leader
-	// election) can raise this to recover.
+	// giving up on ErrCommitFailed from the catalog. Refresh-and-replay
+	// is fully implemented, so a default of 4 allows recovery from
+	// transient OCC conflicts without exhausting the budget on genuine
+	// write conflicts.
 	CommitNumRetriesKey     = "commit.retry.num-retries"
-	CommitNumRetriesDefault = 0
+	CommitNumRetriesDefault = 4
 
 	// CommitMinRetryWaitMsKey is the initial wait time in milliseconds
 	// for exponential backoff between commit retry attempts. Default: 100ms.

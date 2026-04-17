@@ -192,6 +192,9 @@ func ExpressionEvaluator(s *Schema, unbound BooleanExpression, caseSensitive boo
 		return nil, err
 	}
 
+	// Return a method value bound to a freshly-allocated evaluator.
+	// Eval creates a per-call copy internally (see exprEvaluator.Eval),
+	// so the returned function is safe to call from multiple goroutines.
 	return (&exprEvaluator{bound: bound}).Eval, nil
 }
 
