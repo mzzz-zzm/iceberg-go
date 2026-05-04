@@ -109,8 +109,8 @@ func TestDoCommit_RetriesOnCommitFailed(t *testing.T) {
 	}
 	tbl := newRetryTestTable(t, cat, iceberg.Properties{
 		CommitNumRetriesKey:     "4",
-		CommitMinRetryWaitMsKey: "1",
-		CommitMaxRetryWaitMsKey: "2",
+		CommitMinRetryWaitMSKey: "1",
+		CommitMaxRetryWaitMSKey: "2",
 	})
 	cat.metadata = tbl.Metadata()
 
@@ -126,8 +126,8 @@ func TestDoCommit_GivesUpAfterMaxRetries(t *testing.T) {
 	}
 	tbl := newRetryTestTable(t, cat, iceberg.Properties{
 		CommitNumRetriesKey:     "2",
-		CommitMinRetryWaitMsKey: "1",
-		CommitMaxRetryWaitMsKey: "2",
+		CommitMinRetryWaitMSKey: "1",
+		CommitMaxRetryWaitMSKey: "2",
 	})
 	cat.metadata = tbl.Metadata()
 
@@ -146,8 +146,8 @@ func TestDoCommit_DoesNotRetryUnknownStateError(t *testing.T) {
 	}
 	tbl := newRetryTestTable(t, cat, iceberg.Properties{
 		CommitNumRetriesKey:     "10",
-		CommitMinRetryWaitMsKey: "1",
-		CommitMaxRetryWaitMsKey: "2",
+		CommitMinRetryWaitMSKey: "1",
+		CommitMaxRetryWaitMSKey: "2",
 	})
 	cat.metadata = tbl.Metadata()
 
@@ -166,8 +166,8 @@ func TestDoCommit_DoesNotRetryUnrelatedError(t *testing.T) {
 	}
 	tbl := newRetryTestTable(t, cat, iceberg.Properties{
 		CommitNumRetriesKey:     "10",
-		CommitMinRetryWaitMsKey: "1",
-		CommitMaxRetryWaitMsKey: "2",
+		CommitMinRetryWaitMSKey: "1",
+		CommitMaxRetryWaitMSKey: "2",
 	})
 	cat.metadata = tbl.Metadata()
 
@@ -184,8 +184,8 @@ func TestDoCommit_RespectsContextCancellation(t *testing.T) {
 	}
 	tbl := newRetryTestTable(t, cat, iceberg.Properties{
 		CommitNumRetriesKey:     "10",
-		CommitMinRetryWaitMsKey: "50",
-		CommitMaxRetryWaitMsKey: "200",
+		CommitMinRetryWaitMSKey: "50",
+		CommitMaxRetryWaitMSKey: "200",
 	})
 	cat.metadata = tbl.Metadata()
 
@@ -207,8 +207,8 @@ func TestDoCommit_ZeroRetriesOnlyOneAttempt(t *testing.T) {
 	}
 	tbl := newRetryTestTable(t, cat, iceberg.Properties{
 		CommitNumRetriesKey:     "0",
-		CommitMinRetryWaitMsKey: "1",
-		CommitMaxRetryWaitMsKey: "2",
+		CommitMinRetryWaitMSKey: "1",
+		CommitMaxRetryWaitMSKey: "2",
 	})
 	cat.metadata = tbl.Metadata()
 
@@ -245,7 +245,7 @@ func TestBackoffDuration_ExponentialWithJitter(t *testing.T) {
 func TestBackoffDuration_HandlesZeroInputs(t *testing.T) {
 	// Zero min/max should fall back to defaults rather than return garbage.
 	d := backoffDuration(0, 0, 0)
-	assert.Equal(t, time.Duration(CommitMinRetryWaitMsDefault)*time.Millisecond, d)
+	assert.Equal(t, time.Duration(CommitMinRetryWaitMSDefault)*time.Millisecond, d)
 
 	// Very large attempt counts must not panic on shift; clamps to maxMs.
 	d = backoffDuration(100, 100, 60000)
@@ -257,12 +257,12 @@ func TestReadRetryConfig_ClampsNegativeProperties(t *testing.T) {
 	// Negative values in properties should be replaced with defaults.
 	cfg := readRetryConfig(iceberg.Properties{
 		CommitNumRetriesKey:          "-1",
-		CommitMinRetryWaitMsKey:      "-100",
-		CommitMaxRetryWaitMsKey:      "-1000",
-		CommitTotalRetryTimeoutMsKey: "-5",
+		CommitMinRetryWaitMSKey:      "-100",
+		CommitMaxRetryWaitMSKey:      "-1000",
+		CommitTotalRetryTimeMSKey: "-5",
 	})
 	assert.Equal(t, uint(CommitNumRetriesDefault), cfg.numRetries)
-	assert.Equal(t, uint(CommitMinRetryWaitMsDefault), cfg.minWaitMs)
-	assert.Equal(t, uint(CommitMaxRetryWaitMsDefault), cfg.maxWaitMs)
-	assert.Equal(t, uint(CommitTotalRetryTimeoutMsDefault), cfg.totalTimeoutMs)
+	assert.Equal(t, uint(CommitMinRetryWaitMSDefault), cfg.minWaitMs)
+	assert.Equal(t, uint(CommitMaxRetryWaitMSDefault), cfg.maxWaitMs)
+	assert.Equal(t, uint(CommitTotalRetryTimeMSDefault), cfg.totalTimeoutMs)
 }
