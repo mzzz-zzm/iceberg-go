@@ -177,7 +177,7 @@ func (s *OCCRetryAWSSuite) TestSingleWriterOCCRetry() {
 		table.CommitMaxRetryWaitMsKey:   "2000",
 		table.CommitTotalRetryTimeoutMsKey: "30000",
 	})
-	defer func() { _ = s.cat.DropTable(s.ctx, tbl.Identifier()) }()
+	s.T().Cleanup(func() { _ = s.cat.DropTable(s.ctx, tbl.Identifier()) })
 
 	arrowTbl := s.makeRecord(1)
 	defer arrowTbl.Release()
@@ -209,7 +209,7 @@ func (s *OCCRetryAWSSuite) TestConcurrentWritersOCCRetry() {
 		table.CommitMaxRetryWaitMsKey:   "1000",
 		table.CommitTotalRetryTimeoutMsKey: "60000",
 	})
-	defer func() { _ = s.cat.DropTable(s.ctx, tbl.Identifier()) }()
+	s.T().Cleanup(func() { _ = s.cat.DropTable(s.ctx, tbl.Identifier()) })
 
 	const numWriters = 2
 	var (
@@ -222,6 +222,13 @@ func (s *OCCRetryAWSSuite) TestConcurrentWritersOCCRetry() {
 		wg.Add(1)
 		go func(id int64) {
 			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					mu.Lock()
+					errs = append(errs, fmt.Errorf("writer %d panic: %v", id, r))
+					mu.Unlock()
+				}
+			}()
 
 			// Each writer loads a fresh copy of the table to simulate independent clients.
 			freshTbl, err := s.cat.LoadTable(s.ctx, tbl.Identifier())
@@ -286,7 +293,7 @@ func (s *OCCRetryAWSSuite) TestRetryTimeoutRespectsProperty() {
 		table.CommitMaxRetryWaitMsKey:   "200",
 		table.CommitTotalRetryTimeoutMsKey: "500", // very short — ensures the property is read
 	})
-	defer func() { _ = s.cat.DropTable(s.ctx, tbl.Identifier()) }()
+	s.T().Cleanup(func() { _ = s.cat.DropTable(s.ctx, tbl.Identifier()) })
 
 	arrowTbl := s.makeRecord(99)
 	defer arrowTbl.Release()
@@ -332,4 +339,125 @@ func (s *OCCRetryAWSSuite) TestErrCommitFailedFromRestCatalog() {
 	require.True(s.T(), errors.Is(err, table.ErrCommitFailed),
 		"rest.ErrCommitFailed must wrap table.ErrCommitFailed so that "+
 			"the retry loop can detect 409 without importing catalog/rest")
+}
+
+// ---------------------------------------------------------------------------
+// Test: massive OCC via tx.Append (RecordReader path)
+// ---------------------------------------------------------------------------
+
+// makeRecordReader builds a single-batch RecordReader for one row identified
+// by id.  This exercises the tx.Append(RecordReader) streaming write path,
+// which is the production-preferred API because callers typically have a
+// streaming source rather than a fully-materialised arrow.Table.
+func (s *OCCRetryAWSSuite) makeRecordReader(id int64) (array.RecordReader, func()) {
+	sc := arrow.NewSchema([]arrow.Field{
+		{Name: "id", Type: arrow.PrimitiveTypes.Int64, Nullable: true},
+		{Name: "ts", Type: arrow.FixedWidthTypes.Timestamp_us, Nullable: true},
+	}, nil)
+
+	tbl, err := array.TableFromJSON(memory.DefaultAllocator, sc, []string{
+		fmt.Sprintf(`[{"id": %d, "ts": "2024-01-01T00:00:00Z"}]`, id),
+	})
+	s.Require().NoError(err)
+
+	// Extract the single underlying record batch from the table.
+	tr := array.NewTableReader(tbl, tbl.NumRows())
+	tr.Next()
+	rec := tr.Record()
+	rec.Retain()
+	tr.Release()
+	tbl.Release()
+
+	rdr, err := array.NewRecordReader(sc, []arrow.RecordBatch{rec})
+	s.Require().NoError(err)
+	rec.Release() // rdr holds its own reference
+
+	return rdr, rdr.Release
+}
+
+// TestMassiveOCCWithRecordReader launches 20 concurrent goroutines each
+// calling tx.Append(RecordReader) on the same table.  This is the production
+// write path and was the source of a 0-row Parquet-writer panic under high
+// concurrency (fixed by adding Abort() to the FileWriter interface).  All 20
+// writers must succeed; every row must appear exactly once in the final scan.
+func (s *OCCRetryAWSSuite) TestMassiveOCCWithRecordReader() {
+	const numWriters = 20
+
+	tbl := s.createTable("massive_occ_rdr", iceberg.Properties{
+		table.CommitNumRetriesKey:       "20",
+		table.CommitMinRetryWaitMSKey:   "50",
+		table.CommitMaxRetryWaitMSKey:   "2000",
+		table.CommitTotalRetryTimeMSKey: "120000",
+	})
+	s.T().Cleanup(func() { _ = s.cat.DropTable(s.ctx, tbl.Identifier()) })
+
+	var (
+		wg      sync.WaitGroup
+		mu      sync.Mutex
+		errs    []error
+		barrier = make(chan struct{})
+	)
+
+	for i := range numWriters {
+		wg.Add(1)
+		go func(id int64) {
+			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					mu.Lock()
+					errs = append(errs, fmt.Errorf("writer %d panic: %v", id, r))
+					mu.Unlock()
+				}
+			}()
+			<-barrier // start all goroutines at the same moment
+
+			// Each goroutine loads its own fresh snapshot — simulating
+			// independent clients and maximising OCC conflict pressure.
+			freshTbl, err := s.cat.LoadTable(s.ctx, tbl.Identifier())
+			if err != nil {
+				mu.Lock()
+				errs = append(errs, fmt.Errorf("writer %d LoadTable: %w", id, err))
+				mu.Unlock()
+				return
+			}
+
+			rdr, release := s.makeRecordReader(id)
+			defer release()
+
+			tx := freshTbl.NewTransaction()
+			if err := tx.Append(s.ctx, rdr, nil); err != nil {
+				mu.Lock()
+				errs = append(errs, fmt.Errorf("writer %d Append: %w", id, err))
+				mu.Unlock()
+				return
+			}
+
+			if _, err := tx.Commit(s.ctx); err != nil {
+				mu.Lock()
+				errs = append(errs, fmt.Errorf("writer %d Commit: %w", id, err))
+				mu.Unlock()
+			}
+		}(int64(i + 1))
+	}
+
+	start := time.Now()
+	close(barrier)
+	wg.Wait()
+	s.T().Logf("20-writer OCC (RecordReader) total: %v", time.Since(start))
+
+	s.Require().Empty(errs, "all writers must succeed; errors: %v", errs)
+
+	// Reload and verify all 20 rows are present.
+	finalTbl, err := s.cat.LoadTable(s.ctx, tbl.Identifier())
+	s.Require().NoError(err)
+	s.Require().NotNil(finalTbl.CurrentSnapshot())
+
+	scan := finalTbl.Scan(table.WithOptions(s.ioProps))
+	rows, err := scan.ToArrowTable(s.ctx)
+	s.Require().NoError(err)
+	defer rows.Release()
+
+	s.T().Logf("scan returned %d rows (expected %d)", rows.NumRows(), numWriters)
+	s.EqualValues(numWriters, rows.NumRows(),
+		"expected %d rows (1 per concurrent writer), got %d", numWriters, rows.NumRows())
 }

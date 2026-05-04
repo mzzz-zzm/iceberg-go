@@ -400,3 +400,84 @@ func (s *RollingDataWriterTestSuite) TestBytesWrittenReflectsCompressedSize() {
 	s.Require().NoError(err)
 	s.Equal(int64(100), df.Count())
 }
+
+// TestAbortZeroRowsNoPanic verifies that calling Abort() on a newly-opened
+// Parquet FileWriter (zero rows written) does not panic.  This is the exact
+// scenario that caused crashes under high concurrency: the stream goroutine
+// opens a file writer for the first record in a batch, but an error (e.g. a
+// schema-conversion failure or a cancelled context) occurs before Write is
+// called, leaving the writer with 0 rows.  The deferred cleanup must use
+// Abort() instead of Close() to avoid the pqarrow panic.
+func (s *RollingDataWriterTestSuite) TestAbortZeroRowsNoPanic() {
+	arrSchema := arrow.NewSchema([]arrow.Field{
+		{Name: "id", Type: arrow.PrimitiveTypes.Int32, Nullable: true},
+		{Name: "name", Type: arrow.BinaryTypes.String, Nullable: true},
+	}, nil)
+
+	loc := filepath.ToSlash(s.T().TempDir())
+
+	icebergSchema, err := ArrowSchemaToIcebergWithFreshIDs(arrSchema, false)
+	s.Require().NoError(err)
+
+	spec := iceberg.NewPartitionSpec()
+	format := tblutils.GetFileFormat(iceberg.ParquetFile)
+	writeProps := format.GetWriteProperties(iceberg.Properties{})
+
+	statsCols, err := computeStatsPlan(icebergSchema, iceberg.Properties{})
+	s.Require().NoError(err)
+
+	filePath := filepath.Join(loc, "test-abort-zero-rows.parquet")
+	fw, err := format.NewFileWriter(s.ctx, iceio.LocalFS{}, nil, tblutils.WriteFileInfo{
+		FileSchema: icebergSchema,
+		FileName:   filePath,
+		StatsCols:  statsCols,
+		WriteProps: writeProps,
+		Spec:       spec,
+	}, arrSchema)
+	s.Require().NoError(err)
+
+	// Abort without writing any rows — must not panic.
+	s.Require().NotPanics(func() {
+		s.Require().NoError(fw.Abort())
+	})
+}
+
+// TestAbortAfterPartialWriteNoPanic verifies that Abort() is safe even when
+// at least one row group has been written (partial-write error path).
+func (s *RollingDataWriterTestSuite) TestAbortAfterPartialWriteNoPanic() {
+	arrSchema := arrow.NewSchema([]arrow.Field{
+		{Name: "id", Type: arrow.PrimitiveTypes.Int32, Nullable: true},
+		{Name: "name", Type: arrow.BinaryTypes.String, Nullable: true},
+	}, nil)
+
+	loc := filepath.ToSlash(s.T().TempDir())
+
+	icebergSchema, err := ArrowSchemaToIcebergWithFreshIDs(arrSchema, false)
+	s.Require().NoError(err)
+
+	spec := iceberg.NewPartitionSpec()
+	format := tblutils.GetFileFormat(iceberg.ParquetFile)
+	writeProps := format.GetWriteProperties(iceberg.Properties{})
+
+	statsCols, err := computeStatsPlan(icebergSchema, iceberg.Properties{})
+	s.Require().NoError(err)
+
+	filePath := filepath.Join(loc, "test-abort-partial.parquet")
+	fw, err := format.NewFileWriter(s.ctx, iceio.LocalFS{}, nil, tblutils.WriteFileInfo{
+		FileSchema: icebergSchema,
+		FileName:   filePath,
+		StatsCols:  statsCols,
+		WriteProps: writeProps,
+		Spec:       spec,
+	}, arrSchema)
+	s.Require().NoError(err)
+
+	record := s.buildRecord(arrSchema, 10)
+	defer record.Release()
+	s.Require().NoError(fw.Write(record))
+
+	// Abort mid-stream — must not panic.
+	s.Require().NotPanics(func() {
+		s.Require().NoError(fw.Abort())
+	})
+}
