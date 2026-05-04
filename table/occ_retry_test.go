@@ -236,9 +236,9 @@ func (s *OCCRetryTestSuite) TestCommitRetriesOnConflict() {
 func (s *OCCRetryTestSuite) TestCommitRespectsMaxRetries() {
 	// Set max-retries = 1 (only one retry after the initial attempt).
 	props := iceberg.Properties{
-		table.CommitNumRetriesKey:       "1",
-		table.CommitMinRetryWaitMsKey:   "0",
-		table.CommitMaxRetryWaitMsKey:   "0",
+		table.CommitNumRetriesKey:          "1",
+		table.CommitMinRetryWaitMsKey:      "0",
+		table.CommitMaxRetryWaitMsKey:      "0",
 		table.CommitTotalRetryTimeoutMsKey: "60000",
 	}
 
@@ -267,8 +267,8 @@ func (s *OCCRetryTestSuite) TestCommitRespectsMaxRetries() {
 func (s *OCCRetryTestSuite) TestDefaultRetryCount() {
 	// Set wait times to 0 so the test doesn't sleep.
 	props := iceberg.Properties{
-		table.CommitMinRetryWaitMsKey:   "0",
-		table.CommitMaxRetryWaitMsKey:   "0",
+		table.CommitMinRetryWaitMsKey:      "0",
+		table.CommitMaxRetryWaitMsKey:      "0",
 		table.CommitTotalRetryTimeoutMsKey: "60000",
 	}
 
@@ -297,8 +297,8 @@ func (s *OCCRetryTestSuite) TestDefaultRetryCount() {
 func (s *OCCRetryTestSuite) TestCommitSucceedsOnLastRetry() {
 	// Default is 4 retries → 5 attempts. 4 conflicts, success on attempt 5.
 	props := iceberg.Properties{
-		table.CommitMinRetryWaitMsKey:   "0",
-		table.CommitMaxRetryWaitMsKey:   "0",
+		table.CommitMinRetryWaitMsKey:      "0",
+		table.CommitMaxRetryWaitMsKey:      "0",
 		table.CommitTotalRetryTimeoutMsKey: "60000",
 	}
 
@@ -322,8 +322,8 @@ func (s *OCCRetryTestSuite) TestCommitSucceedsOnLastRetry() {
 
 func (s *OCCRetryTestSuite) TestOrphanedManifestListsAreDeleted() {
 	props := iceberg.Properties{
-		table.CommitMinRetryWaitMsKey:   "0",
-		table.CommitMaxRetryWaitMsKey:   "0",
+		table.CommitMinRetryWaitMsKey:      "0",
+		table.CommitMaxRetryWaitMsKey:      "0",
 		table.CommitTotalRetryTimeoutMsKey: "60000",
 	}
 
@@ -434,8 +434,8 @@ func (c *alwaysFailCatalog) CommitTable(
 
 func (s *OCCRetryTestSuite) TestContextCancellationAborts() {
 	props := iceberg.Properties{
-		table.CommitMinRetryWaitMsKey:   "0",
-		table.CommitMaxRetryWaitMsKey:   "0",
+		table.CommitMinRetryWaitMsKey:      "0",
+		table.CommitMaxRetryWaitMsKey:      "0",
 		table.CommitTotalRetryTimeoutMsKey: "60000",
 	}
 	// Set up enough conflicts to require multiple retries.
@@ -493,8 +493,8 @@ func TestErrCommitFailedIdentification(t *testing.T) {
 
 func (s *OCCRetryTestSuite) TestAddDataFilesAlsoRetries() {
 	props := iceberg.Properties{
-		table.CommitMinRetryWaitMsKey:   "0",
-		table.CommitMaxRetryWaitMsKey:   "0",
+		table.CommitMinRetryWaitMsKey:      "0",
+		table.CommitMaxRetryWaitMsKey:      "0",
 		table.CommitTotalRetryTimeoutMsKey: "60000",
 	}
 
@@ -565,8 +565,8 @@ func (s *OCCRetryTestSuite) TestConcurrentAppendsProduceUnion() {
 	// commits its own snapshot concurrently. After the retry, the final table
 	// should contain snapshots from both writers.
 	props := iceberg.Properties{
-		table.CommitMinRetryWaitMsKey:   "0",
-		table.CommitMaxRetryWaitMsKey:   "0",
+		table.CommitMinRetryWaitMsKey:      "0",
+		table.CommitMaxRetryWaitMsKey:      "0",
 		table.CommitTotalRetryTimeoutMsKey: "60000",
 	}
 
@@ -589,6 +589,95 @@ func (s *OCCRetryTestSuite) TestConcurrentAppendsProduceUnion() {
 	// The snapshot must be an append operation (not overwrite).
 	s.Equal(table.OpAppend, finalTbl.CurrentSnapshot().Summary.Operation,
 		"snapshot should be an append")
+}
+
+// ---------------------------------------------------------------------------
+// Manifest list inherited on OCC retry
+// ---------------------------------------------------------------------------
+
+// TestManifestListInheritedAfterConflict is a regression test for the bug
+// where a retried snapshot reused the original manifest list (built against an
+// empty/stale parent) instead of inheriting the manifests already committed by
+// concurrent writers.
+//
+// Scenario:
+//   - Writer B commits one row to an empty table (snapshot B, manifest B).
+//   - Writer A starts a transaction from the *empty* base (before B committed).
+//   - Writer A's first commit attempt fails with ErrCommitFailed (409).
+//   - doCommit reloads the table and gets snapshot B as the fresh head.
+//   - The rebuildManifestList closure rewrites the manifest list to contain
+//     both manifest A (Writer A's own file) and manifest B (inherited).
+//   - Writer A's second attempt succeeds.
+//
+// Without the fix the final snapshot's manifest list would only contain
+// manifest A, and a subsequent scan would return 1 row instead of 2.
+func (s *OCCRetryTestSuite) TestManifestListInheritedAfterConflict() {
+	props := iceberg.Properties{
+		table.CommitMinRetryWaitMsKey:      "0",
+		table.CommitMaxRetryWaitMsKey:      "0",
+		table.CommitTotalRetryTimeoutMsKey: "60000",
+		table.CommitNumRetriesKey:          "2",
+	}
+
+	// Step 1: commit Writer B's row to an empty table.
+	// This writes real Parquet + manifest Avro files to s.location/metadata/.
+	emptyTbl, catB := s.makeTable(0, props)
+	rowB := s.makeArrowTable()
+	defer rowB.Release()
+	txB := emptyTbl.NewTransaction()
+	s.Require().NoError(txB.AppendTable(s.ctx, rowB, rowB.NumRows(), nil))
+	_, err := txB.Commit(s.ctx)
+	s.Require().NoError(err, "Writer B must commit successfully")
+	metaAfterB := catB.current // catalog state after B's commit (real files on disk)
+
+	// Step 2: Writer A's catalog starts with B's committed state.
+	// It returns ErrCommitFailed once (simulating B having committed just
+	// before A), then accepts the retry.
+	catA := &conflictThenSucceedCatalog{
+		current:       metaAfterB,
+		conflictsLeft: 1,
+		location:      s.location,
+	}
+
+	// Step 3: Writer A's table starts from the EMPTY base — it loaded the
+	// table before B committed.
+	writerATable := table.New(
+		emptyTbl.Identifier(),
+		emptyTbl.Metadata(), // empty: no knowledge of B's snapshot yet
+		s.location+"/metadata/v1.metadata.json",
+		func(_ context.Context) (iceio.IO, error) { return iceio.LocalFS{}, nil },
+		catA,
+	)
+
+	rowA := s.makeArrowTable()
+	defer rowA.Release()
+	txA := writerATable.NewTransaction()
+	s.Require().NoError(txA.AppendTable(s.ctx, rowA, rowA.NumRows(), nil))
+	_, err = txA.Commit(s.ctx)
+	s.Require().NoError(err, "Writer A must succeed after one conflict retry")
+
+	s.Equal(int32(2), catA.commitTableCalls.Load(),
+		"expected 2 commit attempts: 1 conflict + 1 success")
+
+	// Step 4: the final snapshot must reference BOTH manifests.
+	// manifest A (Writer A's data file) + manifest B (inherited from B's snapshot).
+	// Without the fix, only manifest A is present and the count is 1.
+	finalSnap := catA.current.CurrentSnapshot()
+	s.Require().NotNil(finalSnap, "committed table must have a current snapshot")
+
+	fio := iceio.LocalFS{}
+	manifests, err := finalSnap.Manifests(fio)
+	s.Require().NoError(err, "must be able to read manifest list from disk")
+	s.Require().Len(manifests, 2,
+		"expected 2 manifests (Writer A + Writer B); got %d — "+
+			"manifest list not inherited on retry", len(manifests))
+
+	// Each manifest must have exactly 1 data file (added or existing).
+	for i, mf := range manifests {
+		count := mf.AddedDataFiles() + mf.ExistingDataFiles()
+		s.EqualValues(1, count,
+			"manifest[%d] should have 1 data file, got %d", i, count)
+	}
 }
 
 // ---------------------------------------------------------------------------
