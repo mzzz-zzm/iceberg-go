@@ -384,10 +384,10 @@ func (s *OCCRetryAWSSuite) TestMassiveOCCWithRecordReader() {
 	const numWriters = 20
 
 	tbl := s.createTable("massive_occ_rdr", iceberg.Properties{
-		table.CommitNumRetriesKey:       "20",
-		table.CommitMinRetryWaitMSKey:   "50",
-		table.CommitMaxRetryWaitMSKey:   "2000",
-		table.CommitTotalRetryTimeMSKey: "120000",
+		table.CommitNumRetriesKey:          "20",
+		table.CommitMinRetryWaitMsKey:      "50",
+		table.CommitMaxRetryWaitMsKey:      "2000",
+		table.CommitTotalRetryTimeoutMsKey: "120000",
 	})
 	s.T().Cleanup(func() { _ = s.cat.DropTable(s.ctx, tbl.Identifier()) })
 

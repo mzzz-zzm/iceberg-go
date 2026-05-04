@@ -192,10 +192,21 @@ func newConflictContext(base, current Metadata, branch string, fs iceio.IO, case
 
 	baseHead := base.SnapshotByName(branch)
 	if baseHead == nil {
-		// Writer has no view of this branch yet (e.g. creating it) —
-		// by definition there are no concurrent commits to validate
-		// against.
-		return &conflictContext{current: current, branch: branch, fs: fs, caseSensitive: caseSensitive}, nil
+		// Writer started from a table that had no snapshot on this branch
+		// (empty table, or branch not yet created by the writer). All
+		// snapshots now present on the branch were committed concurrently
+		// and must be examined by validators that care about concurrent
+		// writes (e.g. RowDelta with equality deletes under SERIALIZABLE).
+		// Fast-append validators safely short-circuit on non-empty
+		// concurrent lists, so this does not regress the common path.
+		allConcurrent := AncestorsOf(currentHead.SnapshotID, current.SnapshotByID)
+		return &conflictContext{
+			current:       current,
+			branch:        branch,
+			fs:            fs,
+			caseSensitive: caseSensitive,
+			concurrent:    allConcurrent,
+		}, nil
 	}
 
 	concurrent, baseFound := AncestorsBetween(currentHead.SnapshotID, baseHead.SnapshotID, current.SnapshotByID)
@@ -408,6 +419,88 @@ func validateNoConflictingDataFiles(ctx *conflictContext, filter iceberg.Boolean
 	}
 
 	return validateAddedDataFilesMatchingFilter(ctx, filter)
+}
+
+// validateNoConflictingDataFilesInPartitions is like
+// validateNoConflictingDataFiles but scoped to specific partition
+// tuples derived from equality-delete files. It only flags concurrent
+// data files whose partition tuple matches one of the provided tuples,
+// avoiding false conflicts when a concurrent append lands in a
+// completely different partition.
+//
+// When any provided partition tuple is empty (the table is
+// unpartitioned or the delete file covers all partitions), the check
+// falls back to AlwaysTrue — the equality delete could affect any row.
+//
+// Under IsolationSnapshot this validator is a no-op.
+func validateNoConflictingDataFilesInPartitions(ctx *conflictContext, eqDeletePartitions []map[int]any, level IsolationLevel) error {
+	if level != IsolationSerializable {
+		return nil
+	}
+
+	if len(ctx.concurrent) == 0 || len(eqDeletePartitions) == 0 {
+		return nil
+	}
+
+	// If any eq-delete file is unpartitioned (empty tuple), the delete
+	// could affect any row — fall back to the conservative AlwaysTrue check.
+	for _, p := range eqDeletePartitions {
+		if len(p) == 0 {
+			return validateAddedDataFilesMatchingFilter(ctx, iceberg.AlwaysTrue{})
+		}
+	}
+
+	// Build a set of partition tuple keys for O(1) lookup.
+	partSet := make(map[string]struct{}, len(eqDeletePartitions))
+	for _, p := range eqDeletePartitions {
+		partSet[partitionTupleKey(p)] = struct{}{}
+	}
+
+	for _, snap := range ctx.concurrent {
+		manifests, err := snap.Manifests(ctx.fs)
+		if err != nil {
+			return fmt.Errorf("loading manifests for concurrent snapshot %d: %w", snap.SnapshotID, err)
+		}
+		for _, mf := range manifests {
+			if mf.ManifestContent() != iceberg.ManifestContentData {
+				continue
+			}
+			entries, err := mf.FetchEntries(ctx.fs, false)
+			if err != nil {
+				return fmt.Errorf("reading entries from manifest %s: %w", mf.FilePath(), err)
+			}
+			for _, e := range entries {
+				if e.Status() != iceberg.EntryStatusADDED || e.SnapshotID() != snap.SnapshotID {
+					continue
+				}
+				if _, ok := partSet[partitionTupleKey(e.DataFile().Partition())]; ok {
+					return fmt.Errorf("%w: snapshot %d added data file %s in eq-delete partition",
+						ErrConflictingDataFiles, snap.SnapshotID, e.DataFile().FilePath())
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// partitionTupleKey returns a deterministic string key for a partition
+// tuple map. Keys are sorted by field id so maps with the same content
+// always produce the same string.
+func partitionTupleKey(p map[int]any) string {
+	if len(p) == 0 {
+		return ""
+	}
+	keys := make([]int, 0, len(p))
+	for k := range p {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+	var buf []byte
+	for _, k := range keys {
+		buf = fmt.Appendf(buf, "%d=%v;", k, p[k])
+	}
+	return string(buf)
 }
 
 // validateNoNewDeletesForRewrittenFiles rejects the commit if any

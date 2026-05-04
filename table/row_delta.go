@@ -209,7 +209,7 @@ func (rd *RowDelta) validate(cc *conflictContext) error {
 	// matching Java's behavior when the referenced-file column is
 	// unset.
 	var referenced []string
-	var hasEqDeletes bool
+	var eqDeletePartitions []map[int]any
 	for _, f := range rd.delFiles {
 		switch f.ContentType() {
 		case iceberg.EntryContentPosDeletes:
@@ -217,7 +217,7 @@ func (rd *RowDelta) validate(cc *conflictContext) error {
 				referenced = append(referenced, *ref)
 			}
 		case iceberg.EntryContentEqDeletes:
-			hasEqDeletes = true
+			eqDeletePartitions = append(eqDeletePartitions, f.Partition())
 		}
 	}
 
@@ -227,16 +227,14 @@ func (rd *RowDelta) validate(cc *conflictContext) error {
 		}
 	}
 
-	if hasEqDeletes {
+	if len(eqDeletePartitions) > 0 {
 		level := readIsolationLevel(rd.txn.meta.props,
 			WriteDeleteIsolationLevelKey, WriteDeleteIsolationLevelDefault)
-		// Conservative: eq-deletes apply by predicate, and RowDelta
-		// does not yet surface the bound predicate. AlwaysTrue is the
-		// safest over-approximation and matches PR 2.3's contract on
-		// validateNoConflictingDataFiles under SERIALIZABLE. Follow-up:
-		// narrow with the actual eq-delete filter once it is carried
-		// on the RowDelta.
-		if err := validateNoConflictingDataFiles(cc, iceberg.AlwaysTrue{}, level); err != nil {
+		// Use partition-aware conflict detection: only flag concurrent data
+		// files whose partition tuple matches one of the equality delete
+		// files' partition tuples. This avoids false conflicts when
+		// concurrent data lands in a different partition.
+		if err := validateNoConflictingDataFilesInPartitions(cc, eqDeletePartitions, level); err != nil {
 			return err
 		}
 	}

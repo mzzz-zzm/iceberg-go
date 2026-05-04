@@ -157,15 +157,21 @@ func TestNewConflictContext_NoConcurrentCommits(t *testing.T) {
 }
 
 func TestNewConflictContext_WriterHasNoBranchView(t *testing.T) {
-	// Writer is creating the branch for the first time (base has no
-	// ref yet) — there is nothing concurrent to validate against.
+	// Writer started from a table that had no snapshot on this branch (empty
+	// table, or branch not yet created by the writer). All snapshots now
+	// present on the branch are treated as concurrent — a writer committing
+	// equality-delete files from an empty base must still detect concurrently
+	// added data files under serializable isolation.
 	base := newConflictTestMetadata(t, nil)
 	head := int64(7)
 	current := newConflictTestMetadata(t, &head)
 
 	ctx, err := newConflictContext(base, current, MainBranch, nil, true)
 	require.NoError(t, err)
-	assert.Empty(t, ctx.concurrent)
+	// All current snapshots (just the one with id=7 in this synthetic metadata)
+	// are returned as concurrent so that validators can detect data conflicts.
+	assert.Len(t, ctx.concurrent, 1, "snapshot(7) must be treated as concurrent when base has no branch head")
+	assert.Equal(t, int64(7), ctx.concurrent[0].SnapshotID)
 }
 
 func TestNewConflictContext_MissingCurrentBranch(t *testing.T) {
