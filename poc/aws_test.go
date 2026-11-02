@@ -17,8 +17,8 @@
 
 //go:build integration
 
-// These tests create, write to and purge up to 10 tables in a real S3 Tables
-// bucket, using the default AWS credential chain:
+// These tests use a real S3 Tables bucket and the default AWS credential chain.
+// Each usually creates one or two tables, writes a row and purges them:
 //
 //	TEST_S3TABLES_BUCKET_ARN=arn:aws:s3tables:<region>:<account>:bucket/<name> \
 //	TEST_S3TABLES_DATABASE=<existing namespace> AWS_REGION=<region> \
@@ -49,7 +49,7 @@ func TestUnsetFieldIDsS3TablesGlue(t *testing.T) {
 	}))
 	require.NoError(t, err)
 
-	reproduce(t, cat, namespace, 10)
+	reproduce(t, cat, namespace)
 }
 
 // Through the Iceberg REST endpoint, iceberg-go sends the IDs unchanged and the
@@ -62,7 +62,7 @@ func TestUnsetFieldIDsS3TablesREST(t *testing.T) {
 		rest.WithWarehouseLocation(os.Getenv("TEST_S3TABLES_BUCKET_ARN")))
 	require.NoError(t, err)
 
-	reproduce(t, cat, namespace, 10)
+	reproduce(t, cat, namespace)
 }
 
 func s3TablesEnv(t *testing.T) (region, account, bucket, namespace string) {

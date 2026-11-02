@@ -15,14 +15,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// Package poc reproduces table creation with a schema whose field IDs were
-// never set. NestedField.ID defaults to 0, NewSchema accepts the duplicate
-// zeros, and table.NewMetadata rebinds day(created_at) to a random column.
-// Neither CreateTable nor Append fails: rows are written with a null partition
-// value, and the first error is a query that filters on the column the
-// partition moved to.
+// Package poc shows what happens when a schema's field IDs are left unset (0):
+// CreateTable puts day(created_at) on the wrong column, Append writes rows with
+// a null partition, and the first error is a later query.
 //
-//	go test -v ./poc/                     # local Hadoop catalog in a temp dir
+//	go test -v ./poc/                     # local, no setup
 //	go test -v -tags integration ./poc/   # AWS S3 Tables, see aws_test.go
 package poc
 
@@ -42,40 +39,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUnsetFieldIDsLocal(t *testing.T) {
+func TestUnsetFieldIDs(t *testing.T) {
 	ctx := context.Background()
 	cat, err := hadoop.NewCatalog(ctx, "local", t.TempDir(), nil)
 	require.NoError(t, err)
 	require.NoError(t, cat.CreateNamespace(ctx, catalog.ToIdentifier("db"), nil))
 
-	reproduce(t, cat, "db", 20)
+	reproduce(t, cat, "db")
 }
 
-// unsetIDSchema leaves every NestedField.ID at its zero value.
-func unsetIDSchema() *iceberg.Schema {
-	return iceberg.NewSchema(0,
-		iceberg.NestedField{Name: "created_at", Type: iceberg.PrimitiveTypes.TimestampTz, Required: true},
-		iceberg.NestedField{Name: "user_id", Type: iceberg.PrimitiveTypes.Int64, Required: true},
-		iceberg.NestedField{Name: "event", Type: iceberg.PrimitiveTypes.String, Required: true},
-	)
-}
-
-// rowFilter matches the row written by oneRow, by the column the partition moved to.
-var rowFilter = map[string]iceberg.BooleanExpression{
-	"user_id": iceberg.EqualTo(iceberg.Reference("user_id"), int64(1)),
-	"event":   iceberg.EqualTo(iceberg.Reference("event"), "login"),
-}
-
-// reproduce creates tables partitioned by day(created_at). At the first table
-// whose partition landed on another column, it writes a row, reads it back
-// with a filter on that column, and fails. It passes if CreateTable rejects
-// the schema, as Java and iceberg-rust do.
-func reproduce(t *testing.T, cat catalog.Catalog, namespace string, tries int) {
+// reproduce fails while the bug exists and passes once CreateTable rejects the
+// schema. Which column the partition lands on follows Go's map iteration order
+// (wrong 7 times in 8), so it retries until it is wrong: 50 tries all landing
+// right has a chance of about 1e-45.
+func reproduce(t *testing.T, cat catalog.Catalog, namespace string) {
 	ctx := context.Background()
-	bound := map[string]int{}
-	for i := range tries {
-		// A fresh schema each time: Schema caches its ID-to-name index.
-		sc := unsetIDSchema()
+	for i := range 50 {
+		sc := iceberg.NewSchema(0, // no NestedField.ID set, so both are 0
+			iceberg.NestedField{Name: "created_at", Type: iceberg.PrimitiveTypes.TimestampTz, Required: true},
+			iceberg.NestedField{Name: "event", Type: iceberg.PrimitiveTypes.String, Required: true},
+		)
 		spec, err := iceberg.NewPartitionSpecOpts(
 			iceberg.AddPartitionFieldByName("created_at", "created_day", iceberg.DayTransform{}, sc, nil))
 		require.NoError(t, err)
@@ -89,31 +72,31 @@ func reproduce(t *testing.T, cat catalog.Catalog, namespace string, tries int) {
 		}
 		t.Cleanup(func() { _ = cat.PurgeTable(context.Background(), ident) })
 
-		created := tbl.Spec()
-		col, _ := tbl.Schema().FindColumnName(created.Field(0).FirstSourceID())
-		bound[col]++
+		got := tbl.Spec()
+		col, _ := tbl.Schema().FindColumnName(got.Field(0).FirstSourceID())
 		if col == "created_at" {
 			continue
 		}
 
 		tbl, err = tbl.Append(ctx, oneRow(t, tbl), nil)
-		require.NoError(t, err, "Append")
+		require.NoError(t, err)
 		files, err := tbl.Scan().PlanFiles(ctx)
 		require.NoError(t, err)
-		_, scanErr := tbl.Scan(table.WithRowFilter(rowFilter[col])).ToArrowTable(ctx)
+		_, queryErr := tbl.Scan(table.WithRowFilter(
+			iceberg.EqualTo(iceberg.Reference("event"), "login"))).ToArrowTable(ctx)
 
-		t.Fatalf("CreateTable and Append succeeded, but day(created_at) is bound to %q (tables so far: %v)\n"+
-			"written partition values: %v\nscan filtered on %s: %v",
-			col, bound, files[0].File.Partition(), col, scanErr)
+		t.Fatalf("CreateTable and Append succeeded, but the table is partitioned by day(%s), not day(created_at)\n"+
+			"partition values written: %v\nquery event = 'login': %v",
+			col, files[0].File.Partition(), queryErr)
 	}
-	t.Logf("all %d tables kept day(created_at)", tries)
+	t.Log("every table kept day(created_at)")
 }
 
 func oneRow(t *testing.T, tbl *table.Table) array.RecordReader {
 	sc, err := table.SchemaToArrowSchema(tbl.Schema(), nil, true, false)
 	require.NoError(t, err)
 	rec, _, err := array.RecordFromJSON(memory.DefaultAllocator, sc,
-		strings.NewReader(`[{"created_at": "2026-11-02T00:00:00Z", "user_id": 1, "event": "login"}]`))
+		strings.NewReader(`[{"created_at": "2026-11-02T00:00:00Z", "event": "login"}]`))
 	require.NoError(t, err)
 	rdr, err := array.NewRecordReader(sc, []arrow.RecordBatch{rec})
 	require.NoError(t, err)
