@@ -1,0 +1,853 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Configuration - Iceberg Golang</title>
+
+
+        <!-- Custom HTML head -->
+        <!--
+          ~ Licensed to the Apache Software Foundation (ASF) under one
+          ~ or more contributor license agreements.  See the NOTICE file
+          ~ distributed with this work for additional information
+          ~ regarding copyright ownership.  The ASF licenses this file
+          ~ to you under the Apache License, Version 2.0 (the
+          ~ "License"); you may not use this file except in compliance
+          ~ with the License.  You may obtain a copy of the License at
+          ~
+          ~   http://www.apache.org/licenses/LICENSE-2.0
+          ~
+          ~ Unless required by applicable law or agreed to in writing,
+          ~ software distributed under the License is distributed on an
+          ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+          ~ KIND, either express or implied.  See the License for the
+          ~ specific language governing permissions and limitations
+          ~ under the License.
+        -->
+          <!-- Matomo -->
+          <script>
+            var _paq = window._paq = window._paq || [];
+            /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+            _paq.push(["setDoNotTrack", true]);
+            _paq.push(["disableCookies"]);
+            _paq.push(['trackPageView']);
+            _paq.push(['enableLinkTracking']);
+            (function() {
+              var u="https://analytics.apache.org/";
+              _paq.push(['setTrackerUrl', u+'matomo.php']);
+              _paq.push(['setSiteId', '82']);
+              var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+              g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+            })();
+          </script>
+          <!-- End Matomo Code -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="install.html">Install</a></li><li class="chapter-item expanded "><a href="getting-started.html">Getting Started</a></li><li class="chapter-item expanded "><a href="configuration.html" class="active">Configuration</a></li><li class="chapter-item expanded "><a href="cli.html">CLI</a></li><li class="chapter-item expanded "><a href="api.html">API</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="variant.html">Variant Type</a></li><li class="chapter-item expanded "><a href="row-filter-syntax.html">Row Filter Syntax</a></li><li class="chapter-item expanded "><a href="expression-dsl.html">Expression DSL</a></li><li class="chapter-item expanded "><a href="concurrent-writes.html">Concurrent Writes</a></li><li class="chapter-item expanded "><a href="metrics-reporting.html">Metrics Reporting</a></li></ol></li><li class="chapter-item expanded "><a href="feature-status.html">Feature Status</a></li><li class="chapter-item expanded affix "><li class="part-title">Developer Guide</li><li class="chapter-item expanded "><a href="contributing.html">Contributing</a></li><li class="chapter-item expanded "><a href="community.html">Community</a></li><li class="chapter-item expanded "><a href="glossary.html">Glossary</a></li><li class="chapter-item expanded affix "><li class="part-title">Releases</li><li class="chapter-item expanded "><a href="releases.html">Releases</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="verify-release.html">Verify a release</a></li><li class="chapter-item expanded "><a href="how-to-release.html">How to release</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Ecosystem</li><li class="chapter-item expanded "><a href="ecosystem.html">Other Iceberg implementations</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Iceberg Golang</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/apache/iceberg-go" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/apache/iceberg-go/edit/main/website/src/configuration.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+-->
+<h1 id="configuration"><a class="header" href="#configuration">Configuration</a></h1>
+<p>This page documents how to configure Apache Iceberg Go: the CLI's YAML config file, per-catalog <code>Option</code> surfaces, file-system credentials, table write properties, concurrency, and how to plug in custom catalogs and IO backends.</p>
+<p>Only properties and options that the iceberg-go code actually reads are listed. Properties defined in the Apache Iceberg spec but not yet wired into iceberg-go are intentionally omitted - check <code>pkg.go.dev/github.com/apache/iceberg-go</code> for the latest read sites.</p>
+<h2 id="cli-configuration-file"><a class="header" href="#cli-configuration-file">CLI configuration file</a></h2>
+<p>The <code>iceberg</code> CLI loads catalog defaults from <code>~/.iceberg-go.yaml</code> (override the directory with <code>GOICEBERG_HOME</code>). The schema, defined in <a href="https://github.com/apache/iceberg-go/blob/main/config/config.go"><code>config/config.go</code></a>, is:</p>
+<pre><code class="language-yaml">default-catalog: default
+max-workers: 5
+catalog:
+  default:
+    type: rest
+    uri: https://example.com/iceberg
+    warehouse: s3://my-bucket/warehouse
+    credential: &lt;client-id&gt;:&lt;client-secret&gt;
+    output: text
+    aws-profile: &quot;&quot;
+    rest:
+      sigv4-enabled: false
+      signing-name: &quot;&quot;
+      signing-region: &quot;&quot;
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>Key</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><code>default-catalog</code></td><td>Name used when <code>--catalog-name</code> is not passed on the CLI.</td></tr>
+<tr><td><code>max-workers</code></td><td>Worker pool size for concurrent operations. Default <code>5</code>.</td></tr>
+<tr><td><code>catalog.&lt;name&gt;.type</code></td><td>One of <code>rest</code>, <code>hive</code>, <code>glue</code>, <code>sql</code>, <code>hadoop</code>, <code>dynamodb</code>.</td></tr>
+<tr><td><code>catalog.&lt;name&gt;.uri</code></td><td>Catalog endpoint or DSN.</td></tr>
+<tr><td><code>catalog.&lt;name&gt;.warehouse</code></td><td>Warehouse identifier (REST/Glue) or location (Hive/SQL).</td></tr>
+<tr><td><code>catalog.&lt;name&gt;.credential</code></td><td>Credential string passed through to the catalog's auth handler.</td></tr>
+<tr><td><code>catalog.&lt;name&gt;.output</code></td><td>CLI output format (e.g. <code>text</code>, <code>json</code>).</td></tr>
+<tr><td><code>catalog.&lt;name&gt;.aws-profile</code></td><td>AWS named profile for Glue and DynamoDB catalogs. When unset, the AWS SDK default credential chain is used.</td></tr>
+<tr><td><code>catalog.&lt;name&gt;.sql-driver</code></td><td><code>database/sql</code> driver name for the SQL catalog. Maps to the <code>sql.driver</code> property. The default CLI binary only compiles in <code>sqliteshim</code>; other drivers require a custom build.</td></tr>
+<tr><td><code>catalog.&lt;name&gt;.sql-dialect</code></td><td>SQL dialect for the SQL catalog (<code>postgres</code>, <code>mysql</code>, <code>sqlite</code>, <code>mssql</code>, <code>oracle</code>). Maps to the <code>sql.dialect</code> property. The default CLI binary only ships <code>sqlite</code> via <code>sqliteshim</code>; other dialects need a custom build with their drivers.</td></tr>
+<tr><td><code>catalog.&lt;name&gt;.rest.sigv4-enabled</code></td><td>Enable AWS SigV4 signing for REST. When enabled, requests are signed with the <code>s3.*</code> credential properties if set (<code>s3.access-key-id</code> / <code>s3.secret-access-key</code> / <code>s3.session-token</code>), otherwise with the AWS default credential chain. The Java-client names (<code>rest.access-key-id</code> / <code>rest.secret-access-key</code> / <code>rest.session-token</code>) are accepted as aliases, resolved per field with the <code>s3.*</code> keys taking precedence.</td></tr>
+<tr><td><code>catalog.&lt;name&gt;.rest.signing-name</code></td><td>SigV4 service name.</td></tr>
+<tr><td><code>catalog.&lt;name&gt;.rest.signing-region</code></td><td>SigV4 region.</td></tr>
+</tbody></table>
+</div>
+<h2 id="catalog-options"><a class="header" href="#catalog-options">Catalog options</a></h2>
+<p>Each catalog package exposes its own functional <code>Option</code> set. The lists below reflect the public option surface; <code>pkg.go.dev</code> is authoritative for the current set.</p>
+<h3 id="rest-catalogrest"><a class="header" href="#rest-catalogrest">REST (<code>catalog/rest</code>)</a></h3>
+<p>The most option-rich surface. Source: <a href="https://github.com/apache/iceberg-go/blob/main/catalog/rest/options.go"><code>catalog/rest/options.go</code></a>.</p>
+<p>When <code>GET /v1/config</code> returns a non-null <code>idempotency-key-lifetime</code>, the client
+sends fresh UUIDv7 <code>Idempotency-Key</code> headers on namespace, table, view and
+transaction mutations, including create view, and on scan cancellation. After
+negotiation, a configured default <code>Idempotency-Key</code> is dropped from all requests
+when the server advertises a lifetime; the initial <code>GET /v1/config</code> may still
+carry it because advertisement is not yet known. Scan plan and task requests
+send keys independently of this advertisement and have a separate retry policy.
+Go's standard HTTP transport may replay certain failed requests on reused
+connections with the same key. The advertised lifetime is not currently enforced,
+including zero or malformed values.</p>
+<div class="table-wrapper"><table><thead><tr><th>Group</th><th>Options</th></tr></thead><tbody>
+<tr><td>Authentication</td><td><code>WithCredential</code>, <code>WithOAuthToken</code>, <code>WithAuthManager</code>, <code>NewOauth2AuthManager</code>, <code>WithAuthURI</code>, <code>WithScope</code>, <code>WithAudience</code>, <code>WithResource</code></td></tr>
+<tr><td>AWS SigV4</td><td><code>WithSigV4</code>, <code>WithSigV4RegionSvc</code>, <code>WithSigner</code></td></tr>
+<tr><td>HTTP</td><td><code>WithHeaders</code>, <code>WithTLSConfig</code>, <code>WithOAuthTLSConfig</code>, <code>WithCustomTransport</code></td></tr>
+<tr><td>Catalog routing</td><td><code>WithPrefix</code>, <code>WithWarehouseLocation</code>, <code>WithMetadataLocation</code></td></tr>
+<tr><td>Pass-through</td><td><code>WithAdditionalProps</code></td></tr>
+</tbody></table>
+</div>
+<blockquote>
+<p><strong>AWS SigV4 is an optional backend.</strong> <code>catalog/rest</code> no longer links the AWS
+SDK. To sign REST requests with SigV4, pull in the
+<a href="https://github.com/apache/iceberg-go/blob/main/catalog/rest/sigv4/sigv4.go"><code>catalog/rest/sigv4</code></a>
+sub-package one of two ways:</p>
+<ul>
+<li>Property or ambient credentials: add a blank import
+<code>_ &quot;github.com/apache/iceberg-go/catalog/rest/sigv4&quot;</code> and enable signing with
+<code>WithSigV4</code> / <code>WithSigV4RegionSvc</code> or the <code>rest.sigv4-enabled</code> property. The
+backend signs with the <code>s3.*</code> credential properties when set (falling back to
+the <code>rest.*</code> aliases), otherwise with the AWS default credential chain.</li>
+<li>Explicit config: pass <code>sigv4.WithAWSConfig(cfg)</code> to <code>NewCatalog</code> alongside
+<code>WithSigV4</code> / <code>WithSigV4RegionSvc</code> (no blank import needed). It supplies the
+<code>aws.Config</code>; the signing service comes from those options (or a server
+<code>/v1/config</code> override), and so does the region when one is set. Otherwise
+the region falls back to <code>cfg.Region</code>.</li>
+</ul>
+<p>The former <code>rest.WithAwsConfig(aws.Config)</code> has been removed in favor of these
+paths. Because signing is enabled by <code>WithSigV4</code> / <code>WithSigV4RegionSvc</code> (or the
+<code>rest.sigv4-enabled</code> property) rather than by supplying a config, a program
+that loads a REST catalog with <code>rest.sigv4-enabled=true</code> now fails at startup
+until the <code>catalog/rest/sigv4</code> backend is blank-imported; the error names the
+import to add.</p>
+</blockquote>
+<h4 id="authentication-type"><a class="header" href="#authentication-type">Authentication type</a></h4>
+<p>The <code>rest.auth.type</code> property selects how the client authenticates, as in Iceberg
+Java. It is read only from the properties the client supplies; a server's
+<code>/v1/config</code> defaults and overrides can't change it. An <code>AuthManager</code> passed with
+<code>WithAuthManager</code> takes precedence over it.</p>
+<div class="table-wrapper"><table><thead><tr><th>Value</th><th>Behavior</th></tr></thead><tbody>
+<tr><td>unset or <code>oauth2</code></td><td>Use <code>token</code>, or the client-credentials flow with <code>credential</code>. With neither, send no authorization header.</td></tr>
+<tr><td><code>none</code></td><td>Send no authorization header, even if <code>token</code> or <code>credential</code> is set.</td></tr>
+<tr><td><code>basic</code></td><td>HTTP Basic authentication with <code>rest.auth.basic.username</code> and <code>rest.auth.basic.password</code>, both required. Like <code>rest.auth.type</code>, they are read only from the client's properties.</td></tr>
+<tr><td><code>sigv4</code></td><td>Sign every request with AWS SigV4 and authenticate with the type in <code>rest.auth.sigv4.delegate-auth-type</code> (default <code>oauth2</code>; <code>sigv4</code> is rejected). Requires a blank import of <code>catalog/rest/sigv4</code>. Unlike <code>rest.sigv4-enabled</code>, a server override can't turn this signing off.</td></tr>
+<tr><td><code>google</code></td><td>Google credentials, for catalogs such as BigLake. Requires a blank import of <code>catalog/rest/googleauth</code>.</td></tr>
+</tbody></table>
+</div>
+<p>Other values select an auth manager registered with <code>rest.RegisterAuthManager</code>.
+An unregistered value fails <code>NewCatalog</code> / <code>catalog.Load</code>.</p>
+<p>When SigV4 signs a request that already carries an <code>Authorization</code> header, such
+as the <code>oauth2</code> or <code>basic</code> header of the delegate auth type, the header moves to
+<code>Original-Authorization</code> and is signed with the request, as in Java. This also
+applies to <code>rest.sigv4-enabled</code>.</p>
+<h4 id="google-biglake"><a class="header" href="#google-biglake">Google BigLake</a></h4>
+<p>With <code>rest.auth.type=google</code>, the
+<a href="https://github.com/apache/iceberg-go/blob/main/catalog/rest/googleauth/googleauth.go"><code>catalog/rest/googleauth</code></a>
+backend authenticates with Google credentials, using the same properties as
+Java's <code>GoogleAuthManager</code>:</p>
+<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>gcp.auth.credentials-path</code></td><td>Path to a credentials JSON file, such as a service account key.</td></tr>
+<tr><td><code>gcp.auth.credentials-json</code></td><td>The same JSON, inline. Setting both is an error.</td></tr>
+<tr><td><code>gcp.auth.scopes</code></td><td>Comma-separated OAuth scopes. Default <code>https://www.googleapis.com/auth/cloud-platform</code>.</td></tr>
+</tbody></table>
+</div>
+<p>Without either credentials property, Application Default Credentials are used.
+Like <code>rest.auth.type</code>, these are read only from the client's properties.</p>
+<p>Token requests don't go through the catalog's HTTP client, so a transport, TLS
+config or proxy set with <code>WithCustomTransport</code>, <code>WithTLSConfig</code> or
+<code>WithTransportFactory</code> doesn't apply to them, as in Java. They use a client with
+the default transport and a 60-second timeout. To use a specific client, put it
+in the context's <code>oauth2.HTTPClient</code> value when loading the catalog, or build
+the token source yourself (for example with <code>googleauth.TokenSource</code>) and pass
+<code>NewOauth2AuthManager(ts)</code> to <code>WithAuthManager</code>. One exception: on Google Cloud
+compute, Application Default Credentials come from the metadata server, which
+the Google library always reaches through its own client.</p>
+<pre><code class="language-go">import (
+	&quot;github.com/apache/iceberg-go&quot;
+	&quot;github.com/apache/iceberg-go/catalog&quot;
+	_ &quot;github.com/apache/iceberg-go/catalog/rest/googleauth&quot;
+)
+
+cat, err := catalog.Load(ctx, &quot;biglake&quot;, iceberg.Properties{
+	&quot;type&quot;:                       &quot;rest&quot;,
+	&quot;uri&quot;:                        &quot;https://biglake.googleapis.com/iceberg/v1/restcatalog&quot;,
+	&quot;warehouse&quot;:                  &quot;gs://lakehouse-public-data&quot;,
+	&quot;rest.auth.type&quot;:             &quot;google&quot;,
+	&quot;header.x-goog-user-project&quot;: &quot;my-project&quot;,
+})
+</code></pre>
+<h4 id="custom-token-sources"><a class="header" href="#custom-token-sources">Custom token sources</a></h4>
+<p><code>WithCredential</code> uses the OAuth2 client-credentials flow against the catalog's
+token endpoint. For other identity providers, wrap any <code>oauth2.TokenSource</code> with
+<code>NewOauth2AuthManager</code> and pass it to <code>WithAuthManager</code>. The Google setup above
+can also be written this way:</p>
+<pre><code class="language-go">ts, err := google.DefaultTokenSource(ctx, &quot;https://www.googleapis.com/auth/cloud-platform&quot;)
+if err != nil {
+	return err
+}
+cat, err := rest.NewCatalog(ctx, &quot;biglake&quot;, &quot;https://biglake.googleapis.com/iceberg/v1/restcatalog&quot;,
+	rest.WithAuthManager(rest.NewOauth2AuthManager(ts)),
+	rest.WithWarehouseLocation(&quot;gs://lakehouse-public-data&quot;),
+	rest.WithHeaders(map[string]string{&quot;x-goog-user-project&quot;: &quot;my-project&quot;}))
+</code></pre>
+<p>The manager reuses a token until it expires, then asks the source for a new one.
+That refresh runs on the HTTP client the source was built with. For
+<code>google.DefaultTokenSource</code> that is the client in the context's
+<code>oauth2.HTTPClient</code> value, or <code>http.DefaultClient</code>, which has no timeout. With
+<code>rest.auth.type=google</code>, the backend sets a client with a 60-second timeout
+unless the context already carries one.</p>
+<h4 id="metrics-reporting"><a class="header" href="#metrics-reporting">Metrics reporting</a></h4>
+<p>The REST catalog can POST scan and commit metrics to the catalog's
+<code>.../tables/{table}/metrics</code> endpoint. These properties are passed as
+client-supplied catalog properties.</p>
+<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>rest-metrics-reporting-enabled</code></td><td>Opt into POSTing metrics reports. <strong>Off by default.</strong></td></tr>
+<tr><td><code>rest.metrics-reporting-enabled</code></td><td>Legacy dotted alias; consulted only when the canonical key above is absent.</td></tr>
+<tr><td><code>rest-metrics-reporting-timeout-ms</code></td><td>Per-report request/response deadline in milliseconds. Default <code>10000</code>.</td></tr>
+</tbody></table>
+</div>
+<blockquote>
+<p><strong>Note on cross-client parity.</strong> Iceberg Java defaults metrics reporting to
+<em>on</em> (<code>METRICS_REPORTING_ENABLED_DEFAULT=true</code>); iceberg-go deliberately
+defaults it <em>off</em>, so no client emits new outbound telemetry unless it
+explicitly opts in. A Java client that never set the flag will therefore stop
+reporting when ported here until <code>rest-metrics-reporting-enabled=true</code> is set.
+Enablement is read from client properties only — a server cannot turn on
+reporting the client never asked for — but an explicit server override setting
+the flag to <code>false</code> <em>is</em> honored (disabling is always safe), so an operator can
+suppress reporting fleet-wide. <code>rest-metrics-reporting-timeout-ms</code> is a
+Go-specific extension with no Java, PyIceberg, or Rust equivalent; do not
+assume parity on it in multi-client deployments.</p>
+</blockquote>
+<h3 id="hive-cataloghive"><a class="header" href="#hive-cataloghive">Hive (<code>catalog/hive</code>)</a></h3>
+<p>Source: <a href="https://github.com/apache/iceberg-go/blob/main/catalog/hive/options.go"><code>catalog/hive/options.go</code></a>.</p>
+<ul>
+<li><code>WithURI(uri string)</code> - Thrift URI for the Hive Metastore (e.g. <code>thrift://127.0.0.1:9083</code>).</li>
+<li><code>WithWarehouse(warehouse string)</code></li>
+<li><code>WithProperties(props iceberg.Properties)</code></li>
+<li><code>WithIORegistry(registry *io.Registry)</code> - use a catalog-scoped FileIO registry.</li>
+</ul>
+<p>Lock-check catalog properties (passed via <code>WithProperties</code> / <code>catalog.Load</code> props):</p>
+<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>iceberg.hive.lock-check-min-wait-ms</code></td><td><code>50</code></td><td>Minimum wait between lock-status checks, in milliseconds. Matches the Java Hive catalog key.</td></tr>
+<tr><td><code>iceberg.hive.lock-check-max-wait-ms</code></td><td><code>5000</code></td><td>Maximum wait between lock-status checks, in milliseconds. Matches the Java Hive catalog key.</td></tr>
+<tr><td><code>iceberg.hive.lock-heartbeat-interval-ms</code></td><td><code>240000</code></td><td>Interval between view lock renewals, in milliseconds. Set it below the metastore lock timeout.</td></tr>
+<tr><td><code>lock-check-min-wait-time</code> / <code>lock-check-max-wait-time</code></td><td>same defaults</td><td>Legacy Go aliases that accept Go duration strings (e.g. <code>100ms</code>, <code>5s</code>). Ignored when the corresponding Java key is set.</td></tr>
+<tr><td><code>lock-check-retries</code></td><td><code>4</code></td><td>Go-specific upper bound on check attempts. Java instead uses <code>iceberg.hive.lock-timeout-ms</code> (not wired in Go yet).</td></tr>
+</tbody></table>
+</div>
+<p>Invalid values (non-positive waits/retries, or min ≥ max) are ignored and the previous/default settings are kept.</p>
+<h3 id="glue-catalogglue"><a class="header" href="#glue-catalogglue">Glue (<code>catalog/glue</code>)</a></h3>
+<p>Source: <a href="https://github.com/apache/iceberg-go/blob/main/catalog/glue/options.go"><code>catalog/glue/options.go</code></a>.</p>
+<ul>
+<li><code>WithAWSConfig(cfg aws.Config)</code> - AWS SDK v2 config; respects the AWS default credential chain.</li>
+<li><code>WithAWSProperties(props AWSProperties)</code> - catalog properties, such as <code>glue.id</code> and the <code>s3.*</code> FileIO keys. <code>NewCatalog</code> ignores the <code>glue.region</code>, endpoint, credential, and retry keys; only <code>catalog.Load</code> reads them.</li>
+<li><code>WithIORegistry(registry *io.Registry)</code> - use a catalog-scoped FileIO registry.</li>
+</ul>
+<h3 id="sql-catalogsql"><a class="header" href="#sql-catalogsql">SQL (<code>catalog/sql</code>)</a></h3>
+<p>Pass <code>sqlcat.WithIORegistry(registry)</code> to <code>NewCatalog</code> to select isolated FileIO:</p>
+<pre><code class="language-go">db, _ := sql.Open(sqliteshim.ShimName, &quot;file:catalog.db&quot;)
+registry := io.NewRegistry() // copy currently registered global schemes
+cat, err := sqlcat.NewCatalog(ctx, &quot;default&quot;, db, sqlcat.SQLite, iceberg.Properties{
+    &quot;warehouse&quot;: &quot;file:///tmp/warehouse&quot;,
+}, sqlcat.WithIORegistry(registry)) // omit option for global FileIO
+</code></pre>
+<p>Supported dialects: <code>sqlcat.Postgres</code>, <code>sqlcat.MySQL</code>, <code>sqlcat.SQLite</code>, <code>sqlcat.MSSQL</code>, <code>sqlcat.Oracle</code> (<code>catalog/sql/sql.go:50</code>).</p>
+<h3 id="shared-options-on-the-base-catalog-package"><a class="header" href="#shared-options-on-the-base-catalog-package">Shared options on the base <code>catalog</code> package</a></h3>
+<p>Operations that create or update tables/views accept these (<code>catalog/catalog.go</code>):</p>
+<ul>
+<li><code>WithLocation</code>, <code>WithPartitionSpec</code>, <code>WithSortOrder</code>, <code>WithProperties</code>, <code>WithStagedUpdates</code></li>
+<li>View-specific: <code>WithViewLocation</code>, <code>WithViewProperties</code></li>
+</ul>
+<h2 id="file-system-credentials"><a class="header" href="#file-system-credentials">File-system credentials</a></h2>
+<p>iceberg-go registers the local file system (<code>file://</code>) automatically. Cloud schemes are <em>not</em> registered until you add a blank import:</p>
+<pre><code class="language-go">import _ &quot;github.com/apache/iceberg-go/io/gocloud/s3&quot;    // s3, s3a, s3n, oss
+import _ &quot;github.com/apache/iceberg-go/io/gocloud/gcs&quot;   // gs
+import _ &quot;github.com/apache/iceberg-go/io/gocloud/azure&quot; // abfs, abfss, wasb, wasbs
+</code></pre>
+<p>Each backend package links its own cloud SDK. Importing <code>io/gocloud</code> registers all three at once and links all cloud SDKs.</p>
+<p>Without a matching blank import, these schemes return <code>ErrIOSchemeNotFound</code> with a hint naming the package to import.</p>
+<p>All credential and tuning property keys are constants in <a href="https://github.com/apache/iceberg-go/blob/main/io/config.go"><code>io/config.go</code></a>. They can be supplied through table properties, catalog properties, or per-call <code>iceberg.Properties</code> arguments depending on context.</p>
+<h3 id="s3"><a class="header" href="#s3">S3</a></h3>
+<p>When remote signing is disabled, authentication is resolved in this order (<code>io/gocloud/s3/s3.go</code>):</p>
+<ol>
+<li>Static credentials in properties: <code>s3.access-key-id</code> + <code>s3.secret-access-key</code> (+ optional <code>s3.session-token</code>).</li>
+<li>The standard AWS SDK v2 default credential chain - environment variables (<code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code>, <code>AWS_SESSION_TOKEN</code>), <code>~/.aws/credentials</code>, container/IAM role.</li>
+</ol>
+<p>Tuning properties:</p>
+<div class="table-wrapper"><table><thead><tr><th>Key (constant)</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><code>s3.region</code> (<code>io.S3Region</code>) / <code>client.region</code> (<code>io.S3ClientRegion</code>)</td><td>AWS region.</td></tr>
+<tr><td><code>s3.endpoint</code> (<code>io.S3EndpointURL</code>)</td><td>Override S3 endpoint URL (custom or compatible storage). Falls back to <code>AWS_S3_ENDPOINT</code> env.</td></tr>
+<tr><td><code>s3.access-key-id</code> (<code>io.S3AccessKeyID</code>)</td><td>Static access key.</td></tr>
+<tr><td><code>s3.secret-access-key</code> (<code>io.S3SecretAccessKey</code>)</td><td>Static secret key.</td></tr>
+<tr><td><code>s3.session-token</code> (<code>io.S3SessionToken</code>)</td><td>Static session token.</td></tr>
+<tr><td><code>s3.proxy-uri</code> (<code>io.S3ProxyURI</code>)</td><td>HTTP proxy URL.</td></tr>
+<tr><td><code>s3.connect-timeout</code> (<code>io.S3ConnectTimeout</code>)</td><td>Either a number of seconds (<code>&quot;60&quot;</code>, <code>&quot;60.0&quot;</code>) or a Go duration (<code>&quot;5s&quot;</code>).</td></tr>
+<tr><td><code>s3.force-virtual-addressing</code> (<code>io.S3ForceVirtualAddressing</code>)</td><td>Force virtual-host-style addressing.</td></tr>
+<tr><td><code>s3.compat-mode</code> (<code>io.S3CompatMode</code>)</td><td>Enable for non-AWS S3 endpoints. Defaults to off.</td></tr>
+<tr><td><code>s3.remote-signing-enabled</code> (<code>io.S3RemoteSigningEnabled</code>)</td><td>Set to <code>true</code> to have a REST service sign S3 requests. Defaults to <code>false</code>.</td></tr>
+<tr><td><code>s3.signer.uri</code> (<code>io.S3SignerURI</code>)</td><td>Legacy signing service base URI. Requests use <code>&lt;base&gt;/v1/aws/s3/sign</code>.</td></tr>
+</tbody></table>
+</div>
+<p>With remote signing enabled, S3 uses anonymous SDK credentials and obtains each
+request's signature from the signing service. No local AWS credentials are needed.
+REST catalogs use the table's <code>/sign</code> endpoint by default and pass through the
+response's <code>remote-signing-config</code> headers and properties. When that config is
+present, legacy <code>signer.endpoint</code>, <code>signer.uri</code>, and <code>s3.signer.uri</code> settings
+are ignored. <code>rest.remote-signing.endpoint</code> can explicitly override the default.
+It may be an absolute URL or a path relative to the catalog URI.
+Legacy settings are supported when the response has no remote signing config.</p>
+<p>A table-specific token takes precedence over the catalog token. The catalog's
+refreshing authentication is reused only when the signer shares the catalog's
+origin. For a separate signing service, use the headers supplied in
+<code>remote-signing-config</code> or a table-specific token. For a standalone S3 FileIO,
+set <code>s3.signer.uri</code>, <code>s3.region</code>, and an optional <code>token</code> for the signing service.
+When also supplying <code>rest.remote-signing.config</code>, set
+<code>rest.remote-signing.endpoint</code> to the complete signing endpoint instead.</p>
+<p>Object uploads use unsigned payloads. Only bulk-delete XML bodies are sent to the
+signer. Streaming signatures (<code>aws-chunked</code>) are unsupported. Caller-supplied
+checksum values are preserved; an upload that sets <code>ChecksumAlgorithm</code> must also
+supply its checksum value. Signing requests use the caller's context and a
+30-second timeout unless the HTTP client has a configured timeout.
+Remote signing accepts a standard <code>*http.Client</code> or the AWS SDK's buildable client
+for S3 requests so redirects can be disabled. Other custom HTTP clients are rejected.
+S3 requests must resolve to SigV4; SigV4a and S3 Express signing are not supported.</p>
+<h3 id="google-cloud-storage"><a class="header" href="#google-cloud-storage">Google Cloud Storage</a></h3>
+<p>Authentication resolution (<code>io/gocloud/gcs/gcs.go</code>):</p>
+<ol>
+<li>Explicit JSON key bytes via <code>gcs.jsonkey</code> or path via <code>gcs.keypath</code>.</li>
+<li>Optional <code>gcs.credtype</code> selecting one of <code>service_account</code>, <code>authorized_user</code>, <code>impersonated_service_account</code>, <code>external_account</code>.</li>
+<li>The GCP default credentials chain (<code>gcp.DefaultCredentials</code>) - falls back to anonymous if no creds are found.</li>
+</ol>
+<p>Tuning properties:</p>
+<div class="table-wrapper"><table><thead><tr><th>Key (constant)</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><code>gcs.endpoint</code> (<code>io.GCSEndpoint</code>)</td><td>Custom GCS endpoint URL.</td></tr>
+<tr><td><code>gcs.keypath</code> (<code>io.GCSKeyPath</code>)</td><td>Path to a JSON service-account key file.</td></tr>
+<tr><td><code>gcs.jsonkey</code> (<code>io.GCSJSONKey</code>)</td><td>JSON key as a string.</td></tr>
+<tr><td><code>gcs.credtype</code> (<code>io.GCSCredType</code>)</td><td>Credential type override.</td></tr>
+<tr><td><code>gcs.usejsonapi</code> (<code>io.GCSUseJSONAPI</code>)</td><td>Set to <code>&quot;true&quot;</code> to enable the GCS JSON API for reads.</td></tr>
+</tbody></table>
+</div>
+<h3 id="azure-data-lake-storage--blob"><a class="header" href="#azure-data-lake-storage--blob">Azure Data Lake Storage / Blob</a></h3>
+<p>Authentication is selected in the following order (<code>io/gocloud/azure/azure.go</code>); the first applicable option wins, and if none of 1-5 apply the default credential chain (6) is used:</p>
+<ol>
+<li>Shared key: a nonempty <code>adls.auth.shared-key.account.name</code> selects this path and requires a nonempty <code>adls.auth.shared-key.account.key</code>.</li>
+<li>Per-host SAS token: <code>adls.sas-token.&lt;hostname&gt;</code>, where <code>&lt;hostname&gt;</code> exactly matches the storage account hostname (for example, <code>myaccount.dfs.core.windows.net</code>).</li>
+<li>Per-account connection string: <code>adls.connection-string.&lt;account-name&gt;</code> (for example, <code>adls.connection-string.myaccount</code>).</li>
+<li>Static access token: a nonempty <code>adls.token</code>, supplied without the <code>Bearer </code> prefix.</li>
+<li>Managed identity: <code>adls.auth.managed-identity.enabled</code> set to exactly <code>&quot;true&quot;</code> selects this path and uses <code>ManagedIdentityCredential</code> directly. Set <code>adls.client-id</code> to select a user-assigned managed identity; otherwise, the system-assigned managed identity is used.</li>
+<li>Default credential chain: <code>DefaultAzureCredential</code>, which includes managed identity among its credential sources.</li>
+</ol>
+<p><code>adls.token</code> accepts an OAuth2 access token for Azure Storage, including a token supplied by a catalog. An empty value is ignored. A rejected or expired token does not fall back to managed identity or the default credential chain.</p>
+<p>The token is static and is not refreshed. As in <a href="https://github.com/apache/iceberg/blob/main/azure/src/main/java/org/apache/iceberg/azure/AzureProperties.java">Java</a> and <a href="https://github.com/apache/iceberg-python/blob/main/pyiceberg/io/fsspec.py">PyIceberg</a>, the credential reports a one-hour cache window to the Azure SDK each time the SDK requests the token. This does not extend the token's actual validity: Azure enforces its expiration. Callers must obtain a new token and recreate the FileIO when it expires; changing the original properties map does not update an existing FileIO.</p>
+<p>A REST catalog can also vend <code>adls.token</code> as a storage credential. The token carries no expiry of its own, so a vended token's expiry comes from <code>expiration-time</code> in the same credential when the catalog supplies one. Without it, a table FileIO that can fetch new credentials assumes a 60-minute lifetime and renews them shortly before it ends, and one that cannot, such as a FileIO for a scan plan's credentials, treats them as never expiring. A token whose actual lifetime is shorter than that fails with authorization errors until it is renewed, so catalogs that vend <code>adls.token</code> should send <code>expiration-time</code> with it. For the storage account it is vended for, a vended token replaces the SAS token and connection string configured for that account and any shared key, which would otherwise take precedence over it; a shared key is not scoped to an account, so one configured for another account would be used for this account too. The SAS tokens and connection strings of other accounts are kept. Expiries configured for other credentials, such as a SAS expiry or an <code>expiration-time</code> in the catalog or table configuration, do not affect when the token is renewed.</p>
+<blockquote>
+<p><strong>Note on cross-client parity.</strong> The two properties in step 5 diverge from the
+other clients. <code>adls.auth.managed-identity.enabled</code> is Go-specific: neither
+Iceberg Java nor PyIceberg defines a property that forces
+<code>ManagedIdentityCredential</code>, so catalog properties that set it do not carry
+over. <code>adls.client-id</code> collides in name only — PyIceberg reads it as a service
+principal client ID used together with <code>adls.client-secret</code> and
+<code>adls.tenant-id</code>, neither of which iceberg-go defines (see the
+<a href="https://py.iceberg.apache.org/configuration/#azure-data-lake">PyIceberg ADLS configuration</a>),
+while Java's <code>AzureProperties</code> defines no <code>adls.client-id</code> at all. Here it is
+only ever read as a user-assigned managed identity ID, and only when step 5 is
+selected.</p>
+</blockquote>
+<p>Tuning properties:</p>
+<div class="table-wrapper"><table><thead><tr><th>Key (constant)</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><code>adls.auth.shared-key.account.name</code> (<code>io.ADLSSharedKeyAccountName</code>)</td><td>Account name.</td></tr>
+<tr><td><code>adls.auth.shared-key.account.key</code> (<code>io.ADLSSharedKeyAccountKey</code>)</td><td>Account key.</td></tr>
+<tr><td><code>adls.sas-token.&lt;host&gt;</code> (prefix <code>io.ADLSSasTokenPrefix</code>)</td><td>Per-host SAS token.</td></tr>
+<tr><td><code>adls.connection-string.&lt;account-name&gt;</code> (prefix <code>io.ADLSConnectionStringPrefix</code>)</td><td>Per-account connection string.</td></tr>
+<tr><td><code>adls.token</code> (<code>io.ADLSToken</code>)</td><td>Static Azure Storage access token, without the <code>Bearer </code> prefix. Subject to the precedence above; not refreshed.</td></tr>
+<tr><td><code>adls.client-id</code> (<code>io.ADLSClientID</code>)</td><td>Client ID of a user-assigned managed identity. Used only when the explicit managed-identity authentication path is selected.</td></tr>
+<tr><td><code>adls.endpoint</code> (<code>io.ADLSEndpoint</code>)</td><td>Storage domain (e.g. <code>blob.core.windows.net</code>).</td></tr>
+<tr><td><code>adls.protocol</code> (<code>io.ADLSProtocol</code>)</td><td><code>http</code> or <code>https</code>.</td></tr>
+<tr><td><code>adls.auth.managed-identity.enabled</code> (<code>io.ADLSManagedIdentityEnabled</code>)</td><td>Set to exactly <code>&quot;true&quot;</code> to use <code>ManagedIdentityCredential</code> directly, subject to the precedence above.</td></tr>
+</tbody></table>
+</div>
+<h2 id="environment-variables"><a class="header" href="#environment-variables">Environment variables</a></h2>
+<p>iceberg-go reads only a small set of environment variables directly. AWS / GCP / Azure credentials flow through the respective SDKs, not through iceberg-go-defined env vars.</p>
+<div class="table-wrapper"><table><thead><tr><th>Variable</th><th>Purpose</th><th>Read at</th></tr></thead><tbody>
+<tr><td><code>GOICEBERG_HOME</code></td><td>Directory containing <code>.iceberg-go.yaml</code>. Defaults to the user's home directory.</td><td><code>config/config.go:87</code></td></tr>
+<tr><td><code>ICEBERG_SQL_DEBUG</code></td><td>SQL catalog query logging - <code>1</code> (failed queries), <code>2</code> (all queries).</td><td><code>catalog/sql/sql.go:206</code></td></tr>
+<tr><td><code>AWS_S3_ENDPOINT</code></td><td>Fallback S3 endpoint when <code>s3.endpoint</code> is unset.</td><td><code>io/gocloud/s3/s3.go</code></td></tr>
+</tbody></table>
+</div>
+<p>There is no <code>PYICEBERG_*</code>-style env var convention. Use the YAML config file or pass <code>iceberg.Properties</code> to overrides programmatically.</p>
+<h2 id="concurrency"><a class="header" href="#concurrency">Concurrency</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Setting</th><th>Source</th><th>Effect</th></tr></thead><tbody>
+<tr><td><code>max-workers</code> in <code>~/.iceberg-go.yaml</code> (<code>config.EnvConfig.MaxWorkers</code>)</td><td>YAML config</td><td>Worker pool size used by parallel column writes, snapshot producers, scan plan, equality-delete writers. Default <code>5</code>.</td></tr>
+<tr><td><code>WithMaxConcurrency(n int) ScanOption</code></td><td>Code (<code>table.WithMaxConcurrency</code>)</td><td>Per-scan override.</td></tr>
+<tr><td><code>WithMaxWriteWorkers(n int)</code></td><td>Code (per-write API on <code>WriteRecords</code>)</td><td>Per-write override of the worker count.</td></tr>
+<tr><td><code>WithClusteredWrite()</code></td><td>Code (per-write API on <code>WriteRecords</code>)</td><td>Forces single-threaded writes. Mutually exclusive with <code>WithMaxWriteWorkers</code>.</td></tr>
+</tbody></table>
+</div>
+<h2 id="pluggability"><a class="header" href="#pluggability">Pluggability</a></h2>
+<p>Two registries are user-extensible. The third (LocationProvider) is currently informational.</p>
+<h3 id="io-scheme-registry"><a class="header" href="#io-scheme-registry">IO scheme registry</a></h3>
+<p>Register a custom URL scheme from an <code>init</code> function with <a href="https://github.com/apache/iceberg-go/blob/main/io/registry.go"><code>io.MustRegister</code></a>:</p>
+<pre><code class="language-go">import (
+    &quot;context&quot;
+    &quot;net/url&quot;
+
+    &quot;github.com/apache/iceberg-go/io&quot;
+)
+
+func init() {
+    io.MustRegister(&quot;myfs&quot;, func(ctx context.Context, parsed *url.URL, props map[string]string) (io.IO, error) {
+        return newMyFS(parsed, props)
+    })
+}
+</code></pre>
+<p><code>io.Register</code> and <code>io.MustRegister</code> both panic for invalid or duplicate global schemes, preserving the existing registration contract. <code>registry.Register</code> on an independent registry returns <code>ErrInvalidSchemeFactory</code> or <code>ErrSchemeAlreadyRegistered</code> instead. Built-in schemes: <code>file</code>, <code>&quot;&quot;</code> (the empty scheme).
+Cloud schemes (<code>s3</code>, <code>gs</code>, <code>abfs</code>, etc.) are registered only when the matching backend package under <code>io/gocloud</code> is blank-imported.</p>
+<p><code>io.GetRegisteredSchemes()</code> returns the current scheme list; <code>io.Unregister(scheme)</code> removes one.</p>
+<p>To register schemes at runtime without changing other users of the same process, create an independent registry:</p>
+<pre><code class="language-go">registry := io.NewRegistry()
+if err := registry.Register(&quot;myfs&quot;, myFactory); err != nil {
+    return err
+}
+fs, err := registry.LoadFS(ctx, props, &quot;myfs://bucket/key&quot;)
+</code></pre>
+<p><code>io.NewRegistry()</code> copies schemes already registered globally (including blank-imported cloud backends) but keeps later registrations independent. <code>registry.Clone()</code> makes an isolated copy of another registry. <code>registry.Names()</code> lists the schemes registered in that instance. <code>registry.LoadFSFunc()</code> is the lazy factory equivalent. Global <code>io.LoadFS()</code> and <code>io.LoadFSFunc()</code> continue using the default registry.</p>
+<p>Pass the catalog's <code>WithIORegistry(registry)</code> option to <code>NewCatalog</code> in
+Glue, Hadoop, Hive, REST, or SQL. For direct view metadata creation or
+writes, pass <code>view.WithIORegistry(registry)</code> to the view helper.
+Omitting the option or passing nil uses the global registry. An empty
+non-nil registry has no registered schemes. A catalog-scoped registry does
+not affect <code>catalog.Load</code>, which uses the global registry with the built-in
+catalog registrars.</p>
+<p>The catalog holds the supplied registry, so registering or unregistering a
+scheme affects future FileIO resolutions. Hadoop opens its warehouse
+filesystem during construction and reuses it for warehouse operations.
+Use <code>registry.Clone()</code> to give another catalog its own set of schemes.</p>
+<p>View metadata creation accepts the same scoped registry option, but reading
+view metadata via <code>view.NewFromLocation</code> uses the filesystem factory explicitly
+passed by the caller. A catalog's own load and update methods supply their
+scoped factory. Passing credentials in <code>ioProps</code> configures the filesystem;
+only <code>metadataProps</code> are persisted in the view metadata.</p>
+<p>These FileIO options do not select a KMS implementation. <code>encryption.KMSRegistry</code> is separate; no catalog encryption path currently loads a KMS client.</p>
+<h3 id="catalog-type-registry"><a class="header" href="#catalog-type-registry">Catalog type registry</a></h3>
+<p>Register a custom catalog type with <a href="https://github.com/apache/iceberg-go/blob/main/catalog/registry.go"><code>catalog.Register</code></a>:</p>
+<pre><code class="language-go">import (
+    &quot;context&quot;
+
+    &quot;github.com/apache/iceberg-go&quot;
+    &quot;github.com/apache/iceberg-go/catalog&quot;
+)
+
+func init() {
+    catalog.Register(&quot;mycatalog&quot;, catalog.RegistrarFunc(
+        func(ctx context.Context, name string, props iceberg.Properties) (catalog.Catalog, error) {
+            return newMyCatalog(name, props)
+        },
+    ))
+}
+</code></pre>
+<p>After registration, <code>catalog.Load(ctx, &quot;default&quot;, iceberg.Properties{&quot;type&quot;: &quot;mycatalog&quot;, ...})</code> will route to the factory. Custom catalogs must implement <code>Close() error</code> to satisfy <code>catalog.Catalog</code>, and callers must close them when finished. Built-in types: <code>rest</code>, <code>hive</code>, <code>glue</code>, <code>sql</code>, <code>hadoop</code>.</p>
+<p><code>catalog.GetRegisteredCatalogs()</code> returns the current list; <code>catalog.Unregister(catalogType)</code> removes one.</p>
+<h3 id="locationprovider"><a class="header" href="#locationprovider">LocationProvider</a></h3>
+<p><a href="https://github.com/apache/iceberg-go/blob/main/table/locations.go"><code>table/locations.go</code></a> defines the <code>LocationProvider</code> interface and ships two implementations: <code>simpleLocationProvider</code> (default) and <code>objectStoreLocationProvider</code> (selected by <code>write.object-storage.enabled = true</code>). The provider is chosen by table properties and is not user-pluggable today.</p>
+<h2 id="table-write-properties"><a class="header" href="#table-write-properties">Table write properties</a></h2>
+<p>Property key constants are in <a href="https://github.com/apache/iceberg-go/blob/main/table/properties.go"><code>table/properties.go</code></a> and Parquet keys in <a href="https://github.com/apache/iceberg-go/blob/main/table/internal/parquet_files.go"><code>table/internal/parquet_files.go</code></a>. The keys below have verified read sites in non-test code.</p>
+<h3 id="format-and-file-sizing"><a class="header" href="#format-and-file-sizing">Format and file sizing</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Key</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>write.format.default</code></td><td><code>parquet</code></td><td>File format used when writing data files. Read in <code>table/writer.go</code> and <code>table/rolling_data_writer.go</code>.</td></tr>
+<tr><td><code>write.target-file-size-bytes</code></td><td><code>536870912</code> (512 MB)</td><td>Target size for newly written data files. Read in <code>table/arrow_utils.go</code>.</td></tr>
+<tr><td><code>write.delete.target-file-size-bytes</code></td><td><code>67108864</code> (64 MB)</td><td>Target size for equality-delete and v2 position-delete files where file rolling applies. Read in <code>table/equality_delete_writer.go</code> and <code>table/arrow_utils.go</code>.</td></tr>
+</tbody></table>
+</div>
+<h3 id="scan-reads"><a class="header" href="#scan-reads">Scan reads</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Key</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>read.split.target-size</code></td><td><code>134217728</code></td><td>Target size for coalescing safe row-group ranges when splitting large local Parquet files. A range may exceed the target when no supplied offset can divide it safely.</td></tr>
+<tr><td><code>read.manifest-list-cache.enabled</code></td><td><code>true</code></td><td>Reuse decoded snapshot manifest lists across scans of a table handle. Set to <code>false</code> to disable retention and shared in-flight reads. Applied when loading or refreshing a table, and when creating a transaction scan.</td></tr>
+<tr><td><code>io.manifest.cache-enabled</code></td><td><code>false</code></td><td>Reuse raw manifest file content across local scans. Read from catalog FileIO properties in REST, Glue, SQL, Hive and Hadoop; REST table metadata and load-response config may override the catalog value.</td></tr>
+<tr><td><code>io.manifest.cache.expiration-interval-ms</code></td><td><code>60000</code></td><td>Idle expiration in milliseconds. Zero disables time-based expiration; negative or unparsable values warn and disable the cache. Expired entries are reclaimed on cache access/insertion, without a background cleanup task.</td></tr>
+<tr><td><code>io.manifest.cache.max-total-bytes</code></td><td><code>104857600</code></td><td>Retained raw bytes per independently loaded table. Handles returned by commit share their source table's cache and budget. Concurrent population buffers and bytes held by active readers are not counted. Non-positive or unparsable values warn and disable caching.</td></tr>
+<tr><td><code>io.manifest.cache.max-content-length</code></td><td><code>8388608</code></td><td>Maximum size of one manifest eligible for content caching. Non-positive or unparsable values warn and disable caching.</td></tr>
+</tbody></table>
+</div>
+<p>The catalog's FileIO properties configure manifest caching for all built-in
+catalogs. With direct <code>table.New</code> calls, use <code>WithScanPlanningIOProperties</code>
+or <code>WithSavedConfig</code>; saved config wins when the same key is present in both.
+Matching expiration interval, total byte limit and per-manifest byte limit
+preserve warm cache entries across refresh and commit. Changing a limit replaces
+the cache.</p>
+<p>Unlike Java, which rejects invalid manifest-cache limits, Go warns and disables
+the content cache for negative or unparsable expiration or
+non-positive/unparsable size limits.</p>
+<p>The manifest-list cache retains at most 64 snapshots and 32,768 manifest
+descriptors in total per table handle. These are count limits, not byte limits:
+memory use also depends on manifest paths, partition summaries, and key metadata.
+Refreshing the table replaces its manifest-list cache.</p>
+<p>The optional manifest-content cache is separate. It stores immutable raw manifest
+bytes and still decodes, projects, and filters entries independently for each
+scan. Cache misses for the same manifest share one in-flight read. If population
+fails, its producer and each existing waiter independently fall back to one
+ordinary FileIO open; if the producer was canceled, live waiters can start
+another shared load. Failed content is not
+retained, so a later scan can retry. Manifests larger than the configured
+per-file limit bypass the cache. The current integration covers local scan
+planning; manifest lists continue to use the decoded manifest-list cache.</p>
+<p>The Java-compatible <code>read.split.planning-lookback</code> and <code>read.split.open-file-cost</code>
+names and defaults are also exported by the Go API for shared configuration,
+but are reserved for future task-group planning and are not currently read.</p>
+<h3 id="metrics-and-metadata-lifecycle"><a class="header" href="#metrics-and-metadata-lifecycle">Metrics and metadata lifecycle</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Key</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>write.metadata.metrics.default</code></td><td>Default per-column metrics mode.</td></tr>
+<tr><td><code>write.metadata.metrics.column.&lt;name&gt;</code></td><td>Per-column override prefix.</td></tr>
+<tr><td><code>write.metadata.delete-after-commit.enabled</code></td><td>When true, expire old metadata files after a successful commit.</td></tr>
+<tr><td><code>write.metadata.previous-versions-max</code></td><td>Cap on retained metadata files. Default <code>100</code>.</td></tr>
+<tr><td><code>write.metadata.compression-codec</code></td><td>Compression for metadata JSON.</td></tr>
+</tbody></table>
+</div>
+<h3 id="manifest-and-commit"><a class="header" href="#manifest-and-commit">Manifest and commit</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Key</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>commit.manifest-merge.enabled</code></td><td>Merge small manifests during commit.</td></tr>
+<tr><td><code>commit.manifest.target-size-bytes</code></td><td>Target size for merged manifests.</td></tr>
+<tr><td><code>commit.manifest.min-count-to-merge</code></td><td>Minimum manifest count that triggers a merge.</td></tr>
+<tr><td><code>commit.retry.num-retries</code></td><td>Retries for <code>ErrCommitFailed</code>. Default <code>4</code>; <code>0</code> fails on the first conflict.</td></tr>
+<tr><td><code>commit.retry.min-wait-ms</code> / <code>commit.retry.max-wait-ms</code> / <code>commit.retry.total-timeout-ms</code></td><td>Backoff bounds.</td></tr>
+</tbody></table>
+</div>
+<h3 id="snapshot-retention"><a class="header" href="#snapshot-retention">Snapshot retention</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Key</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>history.expire.min-snapshots-to-keep</code></td><td>Minimum snapshots to retain when expiring. Default <code>1</code>.</td></tr>
+<tr><td><code>history.expire.max-snapshot-age-ms</code></td><td>Maximum age of retained snapshots. Default <code>432000000</code> (5 days).</td></tr>
+<tr><td><code>history.expire.max-ref-age-ms</code></td><td>Maximum age of branch/tag refs that are not the main branch. Default <code>Long.MAX_VALUE</code> (forever).</td></tr>
+<tr><td><code>gc.enabled</code></td><td>Controls physical garbage collection. Snapshot expiration is rejected when <code>false</code>, and data-file cleanup skips deletion.</td></tr>
+</tbody></table>
+</div>
+<p>The unprefixed retention property names are accepted as compatibility fallbacks. The <code>history.expire.*</code> properties take precedence when both forms are set.</p>
+<h3 id="delete-mode"><a class="header" href="#delete-mode">Delete mode</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Key</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>write.delete.mode</code></td><td>Delete strategy used by row-level delete writers.</td></tr>
+</tbody></table>
+</div>
+<h3 id="object-store-data-layout"><a class="header" href="#object-store-data-layout">Object-store data layout</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Key</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>write.data.path</code></td><td>Override data file directory.</td></tr>
+<tr><td><code>write.metadata.path</code></td><td>Override metadata file directory.</td></tr>
+<tr><td><code>write.object-storage.enabled</code></td><td>Switch the location provider to the hashed object-storage layout.</td></tr>
+<tr><td><code>write.object-storage.partitioned-paths</code></td><td>Whether partition values are included in object-storage paths.</td></tr>
+</tbody></table>
+</div>
+<h3 id="parquet-writer"><a class="header" href="#parquet-writer">Parquet writer</a></h3>
+<p>All defined in <code>table/internal/parquet_files.go</code> and read by the Parquet writer:</p>
+<div class="table-wrapper"><table><thead><tr><th>Key</th><th>Default</th></tr></thead><tbody>
+<tr><td><code>write.parquet.row-group-size-bytes</code></td><td>128 MB</td></tr>
+<tr><td><code>write.parquet.row-group-limit</code></td><td>1,048,576 rows</td></tr>
+<tr><td><code>write.parquet.page-size-bytes</code></td><td>1 MB</td></tr>
+<tr><td><code>write.parquet.page-row-limit</code></td><td>20,000 rows</td></tr>
+<tr><td><code>write.parquet.dict-size-bytes</code></td><td>2 MB</td></tr>
+<tr><td><code>write.parquet.page-version</code></td><td><code>2</code></td></tr>
+<tr><td><code>write.parquet.compression-codec</code></td><td><code>zstd</code></td></tr>
+<tr><td><code>write.parquet.compression-level</code></td><td><code>-1</code> (codec default)</td></tr>
+<tr><td><code>write.parquet.compression-codec.column.&lt;name&gt;</code></td><td>Global codec</td></tr>
+<tr><td><code>write.parquet.compression-level.column.&lt;name&gt;</code></td><td>Global level, or the column codec's default if the codecs differ</td></tr>
+<tr><td><code>write.parquet.bloom-filter-max-bytes</code></td><td>1 MB</td></tr>
+<tr><td><code>write.parquet.bloom-filter-enabled.column.&lt;name&gt;</code></td><td>(per-column toggle, prefix-matched)</td></tr>
+<tr><td><code>write.parquet.bloom-filter-fpp.column.&lt;name&gt;</code></td><td>0.01 (per-column false-positive probability, strictly between 0 and 1)</td></tr>
+<tr><td><code>write.parquet.bloom-filter-ndv.column.&lt;name&gt;</code></td><td>unset (expected distinct values; positive integer up to 4,294,967,295)</td></tr>
+<tr><td><code>write.parquet.bloom-filter-adaptive-enabled</code></td><td><code>false</code> (size enabled Bloom filters to observed NDV unless a per-column NDV is specified)</td></tr>
+<tr><td><code>write.parquet.stats-enabled.column.&lt;name&gt;</code></td><td><code>true</code> (per-column Parquet statistics toggle)</td></tr>
+<tr><td><code>parquet.enable.dictionary</code></td><td><code>true</code> (global dictionary encoding switch; same key as Iceberg Java)</td></tr>
+<tr><td><code>write.parquet.dict-encoding-enabled.column.&lt;name&gt;</code></td><td>(per-column toggle, prefix-matched; overrides the global switch)</td></tr>
+<tr><td><code>write.parquet.shred-variants</code></td><td><code>false</code> (opt-in shredding of top-level variant columns)</td></tr>
+<tr><td><code>write.parquet.variant-inference-buffer-size</code></td><td>100 rows (buffered per file to infer the shredding schema)</td></tr>
+</tbody></table>
+</div>
+<p>The bloom filter, statistics, and dictionary toggles follow Iceberg Java parsing: only <code>true</code>
+(case-insensitive) enables a toggle; other values, including <code>1</code>, are false. Bloom filters remain
+disabled for a column unless its enabled toggle is set. When adaptive sizing is enabled, an explicit
+column NDV takes precedence. Adaptive sizing rejects FPP values extremely close to 1 that could make
+the writer hang.</p>
+<p>Statistics settings apply to data files and use Iceberg field names, including nested paths such as
+<code>items.element</code>. Disabling statistics can reduce pruning and omit some Iceberg file metrics; other
+metadata may still be recorded.</p>
+<p>Column compression keys use case-sensitive Iceberg leaf paths, such as
+<code>items.element</code> or <code>attributes.value.name</code>. They apply to data files and use
+the global settings for columns without overrides. An explicit column level
+must be an integer valid for its effective codec. Missing fields are ignored.
+Parquet variant leaves do not have Iceberg field IDs and cannot be selected by
+these keys. Arrow does not register legacy <code>lz4</code> or <code>lzo</code> codecs by default;
+<code>lz4_raw</code> is supported.
+Bloom column settings use Iceberg names, including <code>items.element</code> and
+<code>lookup.value</code>. Writers resolve these to the physical Parquet paths. Existing
+physical-path settings remain supported; logical names take precedence when
+both are present. Logical settings follow column renames and are removed when
+the column is deleted. Data-column Bloom settings do not apply to delete files.</p>
+<p>Equality-delete and v2 position-delete Parquet writers also support these
+overrides, defined in <code>table/properties.go</code>. Unset overrides inherit the
+corresponding <code>write.parquet.*</code> setting and its default. If the delete codec
+differs from the data codec and no delete level is set, the delete writer uses
+the codec's default level instead of inheriting the data codec's level.</p>
+<div class="table-wrapper"><table><thead><tr><th>Key</th><th>Overrides</th></tr></thead><tbody>
+<tr><td><code>write.delete.parquet.row-group-size-bytes</code></td><td>Row-group size target</td></tr>
+<tr><td><code>write.delete.parquet.page-size-bytes</code></td><td>Data page size</td></tr>
+<tr><td><code>write.delete.parquet.page-row-limit</code></td><td>Page write batch size</td></tr>
+<tr><td><code>write.delete.parquet.dict-size-bytes</code></td><td>Dictionary page size</td></tr>
+<tr><td><code>write.delete.parquet.page-version</code></td><td>Data page version: <code>v1</code> or <code>v2</code> (<code>1</code> and <code>2</code> also accepted)</td></tr>
+<tr><td><code>write.delete.parquet.compression-codec</code></td><td>Compression codec</td></tr>
+<tr><td><code>write.delete.parquet.compression-level</code></td><td>Compression level</td></tr>
+</tbody></table>
+</div>
+<p>As in Java, data-column Bloom filter and dictionary overrides do not apply to
+delete files. The global <code>parquet.enable.dictionary</code> switch still applies.
+Metrics configuration is independent: equality deletes use the table metrics
+settings, while position deletes always retain full <code>file_path</code> and <code>pos</code> bounds.</p>
+<h3 id="parquet-reader"><a class="header" href="#parquet-reader">Parquet reader</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Key</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>read.parquet.batch-size</code></td><td>Arrow record-batch size used by the Parquet reader.</td></tr>
+<tr><td><code>read.parquet.max-compressed-page-size-bytes</code></td><td>Maximum compressed page body. Default: 64 MiB.</td></tr>
+<tr><td><code>read.parquet.max-uncompressed-page-size-bytes</code></td><td>Maximum uncompressed page body. Default: 256 MiB.</td></tr>
+</tbody></table>
+</div>
+<p>The page limits are Go-specific reader settings; Iceberg Java ignores them. Explicit values must be integers from <code>1</code> to <code>2147483647</code>, the largest size representable in a Parquet page header. Table properties apply to scans, deletes, delete-file inspection and maintenance. A scan can override them through <code>table.WithOptions</code> without changing saved metadata. Compressed and uncompressed limits are independent; raising one does not raise the other.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="getting-started.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="cli.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="getting-started.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="cli.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

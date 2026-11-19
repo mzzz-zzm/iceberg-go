@@ -1,0 +1,610 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Releases - Iceberg Golang</title>
+
+
+        <!-- Custom HTML head -->
+        <!--
+          ~ Licensed to the Apache Software Foundation (ASF) under one
+          ~ or more contributor license agreements.  See the NOTICE file
+          ~ distributed with this work for additional information
+          ~ regarding copyright ownership.  The ASF licenses this file
+          ~ to you under the Apache License, Version 2.0 (the
+          ~ "License"); you may not use this file except in compliance
+          ~ with the License.  You may obtain a copy of the License at
+          ~
+          ~   http://www.apache.org/licenses/LICENSE-2.0
+          ~
+          ~ Unless required by applicable law or agreed to in writing,
+          ~ software distributed under the License is distributed on an
+          ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+          ~ KIND, either express or implied.  See the License for the
+          ~ specific language governing permissions and limitations
+          ~ under the License.
+        -->
+          <!-- Matomo -->
+          <script>
+            var _paq = window._paq = window._paq || [];
+            /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+            _paq.push(["setDoNotTrack", true]);
+            _paq.push(["disableCookies"]);
+            _paq.push(['trackPageView']);
+            _paq.push(['enableLinkTracking']);
+            (function() {
+              var u="https://analytics.apache.org/";
+              _paq.push(['setTrackerUrl', u+'matomo.php']);
+              _paq.push(['setSiteId', '82']);
+              var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+              g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+            })();
+          </script>
+          <!-- End Matomo Code -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="install.html">Install</a></li><li class="chapter-item expanded "><a href="getting-started.html">Getting Started</a></li><li class="chapter-item expanded "><a href="configuration.html">Configuration</a></li><li class="chapter-item expanded "><a href="cli.html">CLI</a></li><li class="chapter-item expanded "><a href="api.html">API</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="variant.html">Variant Type</a></li><li class="chapter-item expanded "><a href="row-filter-syntax.html">Row Filter Syntax</a></li><li class="chapter-item expanded "><a href="expression-dsl.html">Expression DSL</a></li><li class="chapter-item expanded "><a href="concurrent-writes.html">Concurrent Writes</a></li><li class="chapter-item expanded "><a href="metrics-reporting.html">Metrics Reporting</a></li></ol></li><li class="chapter-item expanded "><a href="feature-status.html">Feature Status</a></li><li class="chapter-item expanded affix "><li class="part-title">Developer Guide</li><li class="chapter-item expanded "><a href="contributing.html">Contributing</a></li><li class="chapter-item expanded "><a href="community.html">Community</a></li><li class="chapter-item expanded "><a href="glossary.html">Glossary</a></li><li class="chapter-item expanded affix "><li class="part-title">Releases</li><li class="chapter-item expanded "><a href="releases.html" class="active">Releases</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="verify-release.html">Verify a release</a></li><li class="chapter-item expanded "><a href="how-to-release.html">How to release</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Ecosystem</li><li class="chapter-item expanded "><a href="ecosystem.html">Other Iceberg implementations</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Iceberg Golang</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/apache/iceberg-go" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/apache/iceberg-go/edit/main/website/src/releases.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+-->
+<h1 id="releases"><a class="header" href="#releases">Releases</a></h1>
+<p>Apache Iceberg Go follows the standard Apache release process. Releases are cut from <code>main</code>, voted on by the Apache Iceberg PMC, and published as signed source tarballs to <code>https://downloads.apache.org/iceberg/</code> and as Go module versions tagged <code>vX.Y.Z</code>.</p>
+<h2 id="latest-release"><a class="header" href="#latest-release">Latest release</a></h2>
+<ul>
+<li><a href="https://github.com/apache/iceberg-go/releases/latest">Latest release on GitHub</a></li>
+<li>All releases: <a href="https://github.com/apache/iceberg-go/releases">github.com/apache/iceberg-go/releases</a></li>
+</ul>
+<h2 id="using-a-release"><a class="header" href="#using-a-release">Using a release</a></h2>
+<p>Pin a tagged version directly with Go modules:</p>
+<pre><code class="language-sh">go get github.com/apache/iceberg-go@vX.Y.Z
+</code></pre>
+<p>To track <code>main</code>, use <code>@main</code> instead of a version tag.</p>
+<h2 id="release-notes"><a class="header" href="#release-notes">Release notes</a></h2>
+<p>Per-release notes (highlights, breaking changes, contributors) are published on the <a href="https://github.com/apache/iceberg-go/releases">GitHub Releases page</a>. Iceberg Go does not maintain a curated <code>CHANGELOG.md</code> in the repository; the GitHub Releases page is the canonical source.</p>
+<h3 id="unreleased-compatibility-notes"><a class="header" href="#unreleased-compatibility-notes">Unreleased compatibility notes</a></h3>
+<ul>
+<li>
+<p><strong>Catalog and view FileIO may use isolated registries.</strong> Glue, Hadoop, Hive and SQL accept <code>WithIORegistry</code>, as REST already does. <code>hadoop.NewCatalog</code>, <code>sql.NewCatalog</code>, <code>view.CreateView</code>, <code>view.CreateViewWithIOProperties</code>, <code>view.CreateViewFromVersion</code> and <code>view.WriteMetadata</code> now take a trailing variadic option. Existing calls still compile. Function values assigned to a type with the old signature need a wrapper that calls the function without options. The default remains the global registry, including for <code>catalog.Load</code>.</p>
+</li>
+<li>
+<p><strong><code>RowDelta.Commit</code> can be called once per builder.</strong> A second <code>Commit</code> on the same <code>RowDelta</code> now returns an error wrapping <code>table.ErrInvalidOperation</code> and stages nothing, even if the first call failed, as <code>RewriteFiles.Commit</code> does. Previously, calling <code>Commit</code> again after a failed first call could succeed, and calling it again after a successful one staged the builder's files a second time. Create a new builder with <code>Transaction.NewRowDelta</code> for each commit.</p>
+</li>
+<li>
+<p><strong>Data-file replacements now reject concurrent deletes.</strong> Commits staged through <code>ReplaceDataFiles</code>, <code>ReplaceDataFilesByPath</code>, <code>ReplaceFiles</code>, or rewrite operations can return <code>table.ErrConflictingDeleteFiles</code> when a concurrent position delete targets a replaced file or any concurrent equality delete is added. Compaction on tables with streaming equality deletes may see additional conflicts.</p>
+</li>
+<li>
+<p><strong>Orphan cleanup now rejects <code>gc.enabled=false</code>.</strong> <code>DeleteOrphanFiles</code>, <code>PlanOrphanFiles</code>, <code>ExecuteOrphanCleanup</code>, and dry runs now return an error before filesystem access. The <code>iceberg clean-orphan-files</code> command is also affected.</p>
+</li>
+<li>
+<p><strong>Partition specs reject source types a transform cannot handle.</strong> Creating or updating a spec with an incompatible source, such as <code>day(string)</code>, now fails. Writes to existing incompatible specs return <code>ErrInvalidTransform</code> instead of writing null partition values.</p>
+</li>
+<li>
+<p><strong>REST <code>CreateTable</code> validates the partition spec locally.</strong> Invalid specs, including transforms with incompatible source types, return an error matching <code>iceberg.ErrInvalidPartitionSpec</code> before the create request. Previously, the server could return <code>rest.ErrBadRequest</code>.</p>
+</li>
+<li>
+<p><strong>New partition specs reject multiple sources for built-in transforms.</strong> Create-table and add-spec payloads with this shape return <code>ErrInvalidPartitionSpec</code>. Historical metadata with such a field still loads and round-trips, but the field is skipped during partition pruning and residual simplification. Multi-source unknown transforms remain supported.</p>
+</li>
+<li>
+<p><strong>Invalid name mappings now stop scans and add-files.</strong> Tables with an unparseable <code>schema.name-mapping.default</code> now return <code>ErrInvalidMetadata</code> on scans and add-files instead of ignoring the mapping. Fix the property with a valid mapping or remove it.</p>
+</li>
+<li>
+<p><strong>SigV4 keeps the token or credential as <code>Original-Authorization</code>.</strong> With <code>rest.sigv4-enabled=true</code> (or <code>rest.auth.type=sigv4</code>) and a <code>token</code> or <code>credential</code>, requests used to be signed with the token silently dropped, because the SigV4 signature replaced the <code>Authorization</code> header. They now carry it as <code>Original-Authorization</code>, included in the signed headers, as Iceberg Java does. A server behind SigV4 that ignores the header is unaffected.</p>
+</li>
+<li>
+<p><strong>Float and double literal comparators use Iceberg ordering.</strong> <code>TypedLiteral.Comparator()</code> now orders <code>-0.0</code> before <code>+0.0</code> and NaN after all other values; NaN compares equal to NaN. Callers that use these public comparators may see a different order or equality result.</p>
+</li>
+<li>
+<p><strong>Table creation rejects duplicate field IDs.</strong> <code>NewMetadata</code>, and <code>CreateTable</code> on catalogs that build metadata through it (not REST), now return <code>ErrInvalidSchema</code> when two fields in the schema share an ID, including unset <code>0</code> or <code>-1</code> IDs, even for unpartitioned, unsorted tables. Before, the partition spec or sort order could bind to the wrong column. Callers should assign unique IDs (or let the schema be built with fresh IDs). This matches Java, whose <code>Schema</code> constructor rejects duplicate IDs.</p>
+</li>
+<li>
+<p><strong>Struct defaults must be empty objects.</strong> Non-null <code>initial-default</code> and <code>write-default</code> values for struct fields must be <code>{}</code>; defaults for nested fields belong on those fields. Tables with populated struct defaults written by older iceberg-go versions still load, but <code>AddSchema</code> validates the entire resulting schema. Any schema update, including one that changes an unrelated column, will fail until the populated default is cleared.</p>
+</li>
+<li>
+<p><strong>Sort order replacements reuse orders staged earlier in the same transaction.</strong> If a transaction replaces order A with B and then returns to A, A becomes the default again instead of B. The final update reuses A's ID instead of adding another definition. Reuse of orders from earlier commits was already supported.</p>
+</li>
+<li>
+<p><strong>Case-insensitive field binding rejects only ambiguous names.</strong> <code>Reference.Bind</code> and <code>Schema.Select</code> return <code>ErrInvalidSchema</code> when the requested case-insensitive name matches different field IDs, and the error includes both names. Unrelated names remain available to scans, writes, and schema, partition, and sort order updates.</p>
+</li>
+<li>
+<p><strong>Delete files now have a separate 64 MiB target.</strong> Equality-delete and v2 position-delete files previously used <code>write.target-file-size-bytes</code> (512 MiB by default, or the table's override) as their file-size target. They now use <code>write.delete.target-file-size-bytes</code>, which defaults to 64 MiB. After upgrading, tables may produce more, smaller delete files unless this new property is set. To preserve the previous delete-file size target, set <code>write.delete.target-file-size-bytes</code> to the table's former effective <code>write.target-file-size-bytes</code> value (<code>536870912</code> when the data-file target was unset). The data-file target itself is unchanged.</p>
+</li>
+<li>
+<p><strong>Schema updates reject read-time type casts.</strong> <code>UpdateSchema.UpdateColumn</code> now allows only Iceberg schema promotions. Changes such as <code>string</code> to <code>binary</code> and <code>fixed[16]</code> to <code>uuid</code> are rejected by default.</p>
+</li>
+<li>
+<p><strong>Schema reads now reject invalid identifier fields.</strong> Table and view metadata with <code>identifier-field-ids</code> referring to an optional, float/double, missing, non-primitive, or improperly nested field now fails to load with <code>invalid schema</code> (for example, <code>invalid schema: identifier field &quot;foo&quot; must be required</code> or <code>invalid schema: identifier field &quot;foo&quot; cannot be float or double</code>). Older iceberg-go releases could load such metadata, but Java Iceberg already rejects it. To recover an affected table, back up its metadata and use an atomic catalog metadata repair to remove the invalid identifier IDs or replace them with IDs of existing, required, non-floating primitive fields nested only in required structs. Do not edit the currently referenced metadata file in place. Repeated identifier IDs are deduplicated on read.</p>
+</li>
+<li>
+<p><strong>Table history logs reject missing or null required fields.</strong> Loading table metadata now fails with <code>table.ErrInvalidMetadata</code> if a <code>snapshot-log</code> entry omits or sets <code>snapshot-id</code> or <code>timestamp-ms</code> to <code>null</code>, or a <code>metadata-log</code> entry omits or sets <code>metadata-file</code> or <code>timestamp-ms</code> to <code>null</code>. Older iceberg-go releases silently accepted omitted or null fields as zero values, but Java Iceberg already rejects such metadata. Explicit zero values remain valid. Repair affected metadata through an atomic catalog metadata replacement instead of editing the currently referenced metadata file in place.</p>
+</li>
+<li>
+<p><strong><code>UpdateSchema</code> rejects deleting an identifier field.</strong> <code>DeleteColumn</code> on an identifier column used to succeed and quietly drop the column from the table's identifier fields. Now <code>Apply</code> (and <code>Commit</code>) fails with <code>cannot delete identifier field …</code>, as in Java. Deleting a struct that contains one already failed, and now reports <code>cannot delete field … as it will delete nested identifier field …</code>. To delete the column anyway, also call <code>SetIdentifierField</code> with the identifier fields the schema should keep (for example <code>SetIdentifierField([][]string{})</code> to clear them). This also stops a new column that reuses a deleted identifier column's name from becoming the identifier.</p>
+</li>
+<li>
+<p><strong>Schema JSON defaults preserve integer precision.</strong> <code>long</code> defaults now decode as <code>int64</code> instead of <code>float64</code>; non-integral, non-numeric, or out-of-range values now fail to parse. Numeric literals inside object and list defaults decode as <code>json.Number</code> rather than <code>float64</code>.</p>
+</li>
+<li>
+<p><strong>REST mutation keys can enable transport replay.</strong> Namespace, table, view, transaction and scan-cancellation mutations listed in the <a href="./configuration.html">REST catalog documentation</a> now carry fresh UUIDv7 <code>Idempotency-Key</code> headers when <code>GET /v1/config</code> returns a non-null <code>idempotency-key-lifetime</code>. Go's HTTP transport may replay certain failed requests on reused connections with the same key; the advertised lifetime is not yet enforced. Scan plan and task key handling is unchanged. When a lifetime is advertised, a default <code>Idempotency-Key</code> configured via <code>WithHeaders</code> is dropped after <code>GET /v1/config</code>.</p>
+</li>
+<li>
+<p><strong><code>StructType.Fields()</code> returns a copy.</strong> Changing the returned slice no longer changes the struct, matching <code>ListType.Fields()</code> and <code>MapType.Fields()</code>. Build a new type with <code>NewStructType</code> instead. <code>NumFields()</code> and <code>Field(i)</code> read fields without copying, and <code>NewListType</code> and <code>NewMapType</code> are the constructors for the other nested types. The exported fields are unchanged for now; they become unexported before v1.0.0 (see <a href="https://github.com/apache/iceberg-go/issues/2062">#2062</a>).</p>
+</li>
+<li>
+<p><strong><code>io.StatIO.Stat</code> accepts a context.</strong> The method now takes a <code>context.Context</code> before the path, so custom <code>StatIO</code> implementations and callers must pass the operation context.</p>
+</li>
+<li>
+<p><strong>Commits retry conflicts by default.</strong> <code>commit.retry.num-retries</code> now defaults to <code>4</code>, as in Java and PyIceberg, so <code>Commit</code> refreshes and replays a conflicting commit up to four times before returning <code>ErrCommitFailed</code>. Set it to <code>0</code> to keep failing on the first conflict. <code>table.CommitNumRetriesDefault</code> changes from <code>0</code> to <code>4</code>.</p>
+</li>
+<li>
+<p><strong>Schema updates assert the last assigned field ID.</strong> When <code>UpdateSchema</code> adds a schema, the commit now also requires the table's <code>last-column-id</code> to match the transaction's base, as Iceberg Java does. A stale writer whose base predates another writer's column additions now fails with <code>table.ErrCommitFailed</code> instead of reusing field IDs. Reload the table and reapply the schema change.</p>
+</li>
+<li>
+<p><strong>Schemas store binary and fixed defaults as hex strings.</strong> <code>NewSchema</code>, <code>NewSchemaWithIdentifiers</code> and <code>UpdateSchema.AddColumn</code> (through <code>Apply()</code>) convert <code>[]byte</code>, <code>BinaryLiteral</code> and <code>FixedLiteral</code> defaults of binary and fixed fields, including fields nested in structs, lists and maps, to the lowercase hex string iceberg-go writes to metadata JSON, so a field read back from a schema holds a <code>string</code> such as <code>&quot;0aff&quot;</code>. Code that type-asserts these defaults to <code>[]byte</code> must decode the string instead, for example with <code>hex.DecodeString</code>. A schema built in process now equals the same schema read from metadata with lowercase hex. <code>Equals</code> compares the strings case-sensitively, and Java writes uppercase hex (see <a href="https://github.com/apache/iceberg/issues/18352">apache/iceberg#18352</a>). The fields and types passed in are not modified.</p>
+</li>
+<li>
+<p><strong>Predicates reject NaN literals when bound.</strong> <code>EqualTo</code>, <code>NotEqualTo</code>, <code>LessThan</code>, <code>LessThanEqual</code>, <code>GreaterThan</code>, <code>GreaterThanEqual</code>, <code>IsIn</code>, <code>NotIn</code> and <code>LiteralPredicate</code>/<code>SetPredicate</code> with a NaN float literal now fail in <code>Bind</code> with <code>ErrInvalidArgument</code>, as Java does. That includes the string <code>&quot;NaN&quot;</code> on a float column and a NaN on a decimal column, which used to bind as zero. Scans, <code>ExpressionEvaluator</code> and the metrics evaluators all bind first, so they return the error too. Use <code>IsNaN</code> and <code>NotNaN</code> to match NaN values.</p>
+</li>
+<li>
+<p><strong>Out-of-range nanosecond timestamp strings are rejected.</strong> String literals for <code>timestamp_ns</code> and <code>timestamptz_ns</code> outside the signed 64-bit nanosecond range now fail expression binding with <code>ErrBadCast</code>. Scans and <code>ExpressionEvaluator</code> return the error for these filters instead of comparing a wrapped value.</p>
+</li>
+<li>
+<p><strong><code>VisitBoundPredicateRef</code> is removed.</strong> It was meant only for evaluators inside iceberg-go. Visitors in other modules should call <code>VisitBoundPredicate</code>, which passes <code>VisitIn</code> and <code>VisitNotIn</code> a detached copy of the predicate's literal set, as before.</p>
+</li>
+<li>
+<p><strong>Empty string partition bounds are written as non-null bytes.</strong> New manifests preserve empty string lower and upper bounds, fixing filtered scans on identity partitions. Manifests written before this fix may retain null bounds for an empty string and can continue to skip matching rows until rewritten.</p>
+</li>
+<li>
+<p><strong>Name mapping rejects ambiguous aliases and duplicate field IDs.</strong> Scans of files without field IDs now return <code>ErrInvalidSchema</code> when the same name belongs to multiple mapped fields at one level, instead of silently choosing the first. Repeated names on one mapping entry and same names under separate structs remain valid. Reusing a field ID returns <code>ErrInvalidSchema</code> instead of panicking.</p>
+</li>
+<li>
+<p><strong>SQL view APIs align with <code>catalog.ViewCatalog</code>.</strong> <code>CreateView</code> now takes a <code>*view.Version</code>, schema and options, and returns <code>*view.View</code>. <code>LoadView</code> now returns <code>*view.View</code>; use <code>Metadata()</code> to access its metadata. If the caller leaves <code>DefaultCatalog</code> empty, SQL still sets it to the catalog name.</p>
+</li>
+<li>
+<p><strong><code>LocationProvider.NewDataLocation</code> takes the partition path.</strong> The method is now <code>NewDataLocation(dataFileName, partitionPath string)</code>, matching Iceberg Java and PyIceberg, so custom <code>LocationProvider</code> implementations must add the argument. Callers pass the partition path there, or <code>&quot;&quot;</code> for an unpartitioned file, instead of prefixing the file name.</p>
+</li>
+<li>
+<p><strong>Partitioned data files follow the table's location provider.</strong> With <code>write.object-storage.enabled=true</code> and the default <code>write.object-storage.partitioned-paths=true</code>, new partitioned files land under <code>data/&lt;hash&gt;/&lt;partition&gt;/</code> instead of <code>data/&lt;partition&gt;/&lt;hash&gt;/</code>, which can affect prefix-based lifecycle rules and bucket policies. <code>write.object-storage.partitioned-paths=false</code> and <code>write.data.path</code> now apply to partitioned writes. Partitioned paths also no longer percent-encode the table location: <code>s3://bucket/my table</code> stays literal instead of becoming <code>my%20table</code>, as for unpartitioned writes. Existing files stay where they are.</p>
+</li>
+<li>
+<p><strong>External object-store data paths include table context.</strong> For object-storage tables whose <code>write.data.path</code> is outside the table location, new data files now use <code>&lt;hash&gt;/&lt;db&gt;/&lt;table&gt;/...</code> after the shared storage prefix. This applies whether <code>write.object-storage.partitioned-paths</code> is <code>true</code> or <code>false</code>. The new prefixes may affect prefix-based lifecycle rules and bucket policies. Existing data files do not move.</p>
+</li>
+<li>
+<p><strong>SQL catalog nested namespaces match the JDBC catalog.</strong> <code>sql.Catalog.ListNamespaces(ctx, parent)</code> returns only the direct children of <code>parent</code>, no longer <code>parent</code> itself or deeper descendants, and <code>ListNamespaces(ctx, nil)</code> returns the distinct first levels. A namespace that has no row of its own but has child namespaces, such as <code>a</code> after <code>CreateNamespace(a.b)</code>, now exists for listing, <code>CheckNamespaceExists</code>, <code>LoadNamespaceProperties</code>, <code>CreateTable</code>, <code>CreateView</code>, <code>CommitTable</code> creating a table with <code>AssertCreate</code>, and as the target of <code>RenameTable</code> and <code>RenameView</code>; only <code>CreateNamespace</code> and <code>UpdateNamespaceProperties</code> still need its own row. <code>DropNamespace</code> returns <code>catalog.ErrNamespaceNotEmpty</code> while child namespaces exist. Walk the hierarchy one level at a time, and drop children before their parent.</p>
+</li>
+<li>
+<p><strong>Catalog capabilities split into narrower interfaces.</strong> <code>catalog.Catalog</code> now embeds <code>TableCatalog</code> and <code>NamespaceCatalog</code> with unchanged table and namespace methods. <code>Name() string</code> is now required, breaking third-party catalogs and test fakes. <code>ViewCatalog</code> is optional (REST, Hive, and SQL), while REST, SQL, and Hive implement <code>UpdatableViewCatalog</code> for <code>UpdateView</code>. REST and SQL implement <code>RenamableViewCatalog</code> for <code>RenameView</code>. Use <code>catalog.As[T](cat)</code> and the <code>Unwrap() Catalog</code> convention to discover optional capabilities through decorators. Future capabilities should use optional interfaces rather than extending <code>Catalog</code>.</p>
+</li>
+<li>
+<p><strong>Rename IO methods take a context.</strong> <code>RenameIO.Rename</code> and <code>RenameNoReplaceIO.RenameNoReplace</code> now take <code>context.Context</code> first, so custom implementations and callers must update.</p>
+</li>
+<li>
+<p><strong><code>ReplaceFilesWithDeleteFiles</code> removed.</strong> For delete-file replacements, use <code>tx.NewRewrite(snapshotProps)</code>, call <code>DeleteFile</code> for each source file and <code>AddDeleteFileWithDataSequenceNumber</code> for each replacement, then commit the builder. Rewrites record a <code>replace</code> snapshot instead of <code>overwrite</code>. The five-argument <code>ReplaceFiles</code> API is unchanged and remains available for compaction and delete-file removals.</p>
+</li>
+<li>
+<p><strong>Manifest and deletion-vector reads take a context.</strong> <code>Snapshot.Manifests</code>, <code>ManifestFile.Entries</code>, <code>iceberg.EntriesWithProjection</code>, <code>dv.ReadDV</code> and <code>dv.ReadDVs</code> now take a <code>context.Context</code> first argument and pass it to <code>IO.Open</code>. Custom <code>ManifestFile</code> implementations must add it to <code>Entries</code>.</p>
+</li>
+<li>
+<p><strong>Path-based data-file addition renamed.</strong> Replace <code>Transaction.AddFiles</code> with <code>AddDataFilesByPath</code>, <code>AddFilesOption</code> with <code>AddDataFilesByPathOption</code>, and <code>WithAddFilesConcurrency</code> with <code>WithAddDataFilesByPathConcurrency</code>. Behavior is unchanged.</p>
+</li>
+<li>
+<p><strong>Directory IO methods take a context.</strong> <code>RemoveAllIO.RemoveAll</code> and <code>MkdirAllIO.MkdirAll</code> now take <code>context.Context</code> first, so custom implementations and callers must update.</p>
+</li>
+<li>
+<p><strong>Manifest builder constructor renamed.</strong> Replace <code>iceberg.NewManifestFile(...)</code> with <code>iceberg.NewManifestBuilder(...)</code>. It still returns a <code>ManifestBuilder</code>.</p>
+</li>
+<li>
+<p><strong>Manifest sequence APIs use explicit names.</strong> <code>ManifestBuilder.SequenceNum</code> and <code>ManifestFile.SequenceNum</code> become <code>SequenceNumber</code>, and <code>ManifestFile.MinSequenceNum</code> becomes <code>MinSequenceNumber</code>. <code>ManifestEntryBuilder.SequenceNum</code> and <code>ManifestEntry.SequenceNum</code> become <code>DataSequenceNumber</code>. <code>FileSequenceNum</code> becomes <code>FileSequenceNumber</code> for entries and their builder. Avro and JSON field names are unchanged.</p>
+</li>
+<li>
+<p><strong><code>io.ReadFileIO.ReadFile</code> accepts a context.</strong> The method now takes a <code>context.Context</code> before the path, so custom <code>ReadFileIO</code> implementations and callers must pass the operation context.</p>
+</li>
+<li>
+<p><strong>View and UDF metadata builder constructors are infallible.</strong> <code>view.NewMetadataBuilder</code> and <code>udf.NewMetadataBuilder</code> now return only a builder instead of <code>(builder, error)</code>; remove error handling at call sites.</p>
+</li>
+<li>
+<p><strong>Table metadata getter renamed.</strong> Replace <code>table.Metadata.Version()</code> with <code>table.Metadata.FormatVersion()</code>, consistent with Iceberg Java and Go view/UDF metadata. Metadata JSON is unchanged.</p>
+</li>
+<li>
+<p><strong>Snapshot ref type field renamed.</strong> Replace <code>table.SnapshotRef.SnapshotRefType</code> with <code>table.SnapshotRef.Type</code>. The JSON field is still <code>&quot;type&quot;</code>.</p>
+</li>
+<li>
+<p><strong>As-of snapshot lookups now use inclusive timestamps.</strong> Replace <code>tbl.SnapshotAsOf(timestampMs, true)</code> with <code>tbl.SnapshotAsOf(timestampMs)</code>. The method always selects the latest snapshot at or before the timestamp, matching Java Iceberg's <code>SnapshotUtil.nullableSnapshotIdAsOfTime</code>. For strict-before lookup, use <code>SnapshotLogEntryAsOf(tbl.Metadata().SnapshotLogs(), timestampMs, false)</code>.</p>
+</li>
+<li>
+<p><strong>Snapshot timestamp property key corrected.</strong> <code>PropertyCurrentSnapshotTimestamp</code> now uses <code>current-snapshot-timestamp-ms</code>. The old <code>current-snapshot-timestamp</code> spelling is no longer reserved and remains usable as a custom property.</p>
+</li>
+<li>
+<p><strong>FileIO open and remove take a context.</strong> <code>io.IO.Open</code> and <code>io.IO.Remove</code> now take a <code>context.Context</code> first argument, so custom <code>io.IO</code> implementations must add it. <code>maintenance.WithCleanupDeleteFunc</code> now takes <code>func(context.Context, string) error</code>.</p>
+</li>
+<li>
+<p><strong>Hadoop catalog construction takes a context.</strong> <code>hadoop.NewCatalog(name, warehouse, props)</code> becomes <code>hadoop.NewCatalog(ctx, name, warehouse, props)</code>. The context bounds filesystem setup; the catalog's filesystem keeps its values but not its cancellation.</p>
+</li>
+<li>
+<p><strong>SQL and Hive catalog construction takes a context.</strong> <code>sql.NewCatalog(name, db, dialect, props)</code> becomes <code>sql.NewCatalog(ctx, name, db, dialect, props)</code>, and <code>hive.NewCatalog(props, opts...)</code> becomes <code>hive.NewCatalog(ctx, props, opts...)</code>. The context bounds the SQL table setup queries and is checked before the Hive metastore connect.</p>
+</li>
+<li>
+<p><strong>Config loading reports errors.</strong> <code>config.LoadConfig</code> now returns <code>([]byte, error)</code>, and <code>config.LoadConfigFile</code> is removed; call <code>LoadConfig</code> instead. A missing default <code>~/.iceberg-go.yaml</code> still returns no data and no error.</p>
+</li>
+<li>
+<p><strong>Branch transactions return initialization errors.</strong> <code>Table.NewTransactionOnBranch(branch)</code> now returns <code>(*Transaction, error)</code>, and <code>Table.NewTransactionOnBranchWithError</code> is removed. Use <code>NewTransactionOnBranch</code> and handle its error.</p>
+</li>
+<li>
+<p><strong>Retries preserve staged update order.</strong> An append staged after <code>RollbackToSnapshot</code> stays on the rollback target after a retry or resumed <code>Commit</code>. If a staged update cannot apply after refresh, the transaction ends with <code>table.ErrTransactionUnusable</code>. For example, <code>UpgradeFormatVersion</code> cannot apply if a peer has committed a higher format version. The error preserves its cause and also matches <code>table.ErrCommitFailed</code> if that cause is a conflict. Previously, for transactions without a staged expiry, these failures returned <code>table.ErrCommitRejected</code> and left the transaction resumable. A catalog rejection on the first attempt still returns <code>table.ErrCommitRejected</code> and leaves the transaction resumable.</p>
+</li>
+<li>
+<p><strong>Retries renew snapshot timestamps.</strong> A retry or resumed <code>Commit</code> stamps each snapshot it replays from a staged write with the current time, at least one millisecond after its parent, as Java's <code>SnapshotProducer</code> does. A snapshot staged more than a minute before a peer's commit no longer fails the retry. The committed timestamp is the time of the attempt that lands, so an <code>ExpireSnapshots</code> staged after the write in the same transaction keeps that snapshot when the commit retries.</p>
+</li>
+<li>
+<p><strong>Snapshot expiration now tolerates concurrent ref changes.</strong> If a concurrent commit moves a ref that the expiry read, a retry or later <code>Commit</code> replans instead of failing with <code>table.ErrCommitFailed</code>. The committed expiry can differ from <code>Transaction.StagedTable</code>. See <a href="./concurrent-writes.html#snapshot-expiration">Snapshot expiration</a> for cases that now fail with <code>table.ErrTransactionUnusable</code>.</p>
+</li>
+<li>
+<p><strong>Snapshot expiration loads full REST history on demand.</strong> Expiration requests <code>snapshots=all</code> when a REST table was loaded in refs mode, including on commit retries. Use <code>Transaction.ExpireSnapshotsWithContext</code> to control the staging request. Catalogs that only supply refs-only history cannot safely expire snapshots.</p>
+</li>
+<li>
+<p><strong>RowDelta reports a concurrent deletion vector as a commit conflict.</strong> If a concurrent commit adds a deletion vector for a data file that a <code>RowDelta</code> also adds one for, <code>Transaction.Commit</code> now fails with an error matching <code>table.ErrConflictingDeleteFiles</code>, <code>table.ErrCommitFailed</code> and <code>table.ErrTransactionUnusable</code>, and the transaction cannot be committed again. Previously, the error matched none of them and the transaction stayed usable. To resolve the conflict, reload the table and commit a <code>RowDelta</code> that adds one deletion vector merging the positions of both vectors and removes the concurrent one with <code>RemoveDeletes</code>.</p>
+</li>
+<li>
+<p><strong>Schema JSON constructor uses the Go initialism.</strong> Replace <code>iceberg.NewSchemaFromJsonFields</code> with <code>iceberg.NewSchemaFromJSONFields</code>.</p>
+</li>
+<li>
+<p><strong>AWS identifiers use the Go initialism.</strong> <code>glue.AwsProperties</code>, <code>glue.WithAwsConfig</code> and <code>glue.WithAwsProperties</code> become <code>glue.AWSProperties</code>, <code>glue.WithAWSConfig</code> and <code>glue.WithAWSProperties</code>; <code>sigv4.WithAwsConfig</code> becomes <code>sigv4.WithAWSConfig</code>; <code>utils.WithAwsConfig</code> and <code>utils.GetAwsConfig</code> become <code>utils.WithAWSConfig</code> and <code>utils.GetAWSConfig</code>; and <code>config.CatalogConfig.AwsProfile</code> becomes <code>AWSProfile</code>. The <code>aws-profile</code> YAML key is unchanged.</p>
+</li>
+<li>
+<p><strong>KMS factory registration now takes a context.</strong> Change <code>encryption.KMSFactory</code> implementations to accept <code>(context.Context, map[string]string)</code> instead of only properties, and call <code>encryption.LoadKeyManagementClient(ctx, props)</code> instead of <code>LoadKeyManagementClient(props)</code>. The existing global <code>RegisterKMS</code>, <code>UnregisterKMS</code>, and <code>GetRegisteredKMSNames</code> functions still use the default registry; <code>RegisterKMS</code> still panics for invalid registrations. Use <code>encryption.MustRegisterKMS</code> for provider initialization. For isolated registrations, create <code>registry := encryption.NewKMSRegistry()</code> after importing any KMS providers and call <code>registry.Register</code>, <code>registry.Load(ctx, props)</code>, <code>registry.Names</code>, or <code>registry.Unregister</code>. New registries snapshot the global registrations; subsequent changes do not propagate.</p>
+</li>
+<li>
+<p><strong>Name-mapping child lookup renamed.</strong> Replace <code>MappedField.GetField(name)</code> with <code>MappedField.FindFieldByName(name)</code>, which returns <code>(*MappedField, bool)</code>. The new method returns a pointer to the actual child field rather than a copy, and reports a missing name with <code>false</code>.</p>
+</li>
+<li>
+<p><strong>Data file block size setter removed.</strong> <code>iceberg.DataFileBuilder.BlockSizeInBytes</code> is removed. New v1 manifests use the Avro schema's 64 MiB default when the field is unset. V2/v3 omit this deprecated field, and legacy v1 values remain readable.</p>
+</li>
+<li>
+<p><strong>View creation APIs take a named SQL representation.</strong> <code>view.NewVersionFromSQL</code>, <code>view.CreateView</code>, and <code>view.CreateViewWithIOProperties</code> now accept a <code>view.Representation{SQL: sql, Dialect: dialect}</code> instead of positional SQL/dialect strings. The dialect is required; Hive preserves the selected representation's dialect.</p>
+</li>
+<li>
+<p><strong>View SQL representation construction uses named fields.</strong> Replace <code>view.NewRepresentation(sql, dialect)</code> with <code>view.NewRepresentation(view.Representation{SQL: sql, Dialect: dialect})</code>. Serialized JSON is unchanged.</p>
+</li>
+<li>
+<p><strong>Hive views keep the caller's view version.</strong> <code>hive.Catalog.CreateView</code> now stores every representation, the summary, the default namespace and <code>default-catalog</code> as passed, instead of one representation with <code>default-catalog</code> set to <code>&quot;hive&quot;</code>.</p>
+</li>
+<li>
+<p><strong>Reserved table properties now use a read-only API.</strong> Replace references to <code>table.ReservedProperties</code> with <code>table.ReservedProperties()</code>. The function returns a fresh slice, so callers cannot change metadata validation by modifying it.</p>
+</li>
+<li>
+<p><strong>Fixed and decimal constructors return errors.</strong> <code>iceberg.FixedTypeOf</code> and <code>iceberg.DecimalTypeOf</code> now return <code>(type, error)</code> instead of panicking for invalid inputs. Use <code>MustFixedTypeOf</code> or <code>MustDecimalTypeOf</code> only for known-valid values.</p>
+</li>
+<li>
+<p><strong>SQL UDF representations now use struct literals.</strong> The <code>udf.NewSQLRepresentation(dialect, sql)</code> function, available since v0.7.0, is removed. Use <code>udf.SQLRepresentation{Dialect: &quot;trino&quot;, SQL: &quot;x + 1&quot;}</code> instead. Empty fields and duplicate dialects are checked during metadata validation; serialized JSON is unchanged.</p>
+</li>
+<li>
+<p><strong>Filesystem adapter construction consolidated.</strong> Replace <code>io.FSPreProcName(fsys, fn)</code> with <code>io.FS(fsys, io.WithNamePreprocessor(fn))</code>. Plain <code>io.FS(fsys)</code> remains supported.</p>
+</li>
+<li>
+<p><strong>Table purge is required on catalogs.</strong> The <code>catalog.Catalog</code> interface now embeds <code>catalog.PurgeableCatalog</code>; every custom catalog implementation must provide <code>PurgeTable(ctx, identifier) error</code>. The narrow <code>catalog.PurgeableTable</code> interface is renamed to <code>catalog.PurgeableCatalog</code>. Built-in purge behavior is unchanged.</p>
+</li>
+<li>
+<p><strong>Unify statistics blob types with Puffin.</strong> Replace <code>table.BlobType</code> with <code>puffin.BlobType</code> when constructing <code>table.BlobMetadata</code>. Replace <code>table.BlobTypeApacheDatasketchesThetaV1</code> with <code>puffin.BlobTypeDataSketchesTheta</code> and <code>table.BlobTypeDeletionVectorV1</code> with <code>puffin.BlobTypeDeletionVector</code>. Use <code>puffin.BlobType.IsKnown()</code> to identify the types defined by the Puffin specification; the redundant <code>table.BlobType.IsValid()</code> method is removed. Unknown non-empty blob type names still round-trip through table metadata.</p>
+</li>
+<li>
+<p><strong>View representation field uses the Go SQL initialism.</strong> Replace <code>view.Representation.Sql</code> with <code>view.Representation.SQL</code>. Serialized view metadata still uses the <code>sql</code> JSON field.</p>
+</li>
+<li>
+<p><strong>Orphan cleanup results now expose only <code>OrphanFiles</code>.</strong> Replace <code>result.OrphanFileLocations</code> with <code>result.OrphanFiles</code> (each entry has <code>Path</code> and <code>SizeBytes</code>). <code>OrphanCleanupPlan.Files()</code> still provides path-only lists during planning.</p>
+</li>
+<li>
+<p><strong>Catalog identifier helper renamed.</strong> <code>catalog.TableNameFromIdent</code> is removed. Use <code>catalog.ObjectNameFromIdent</code> for tables, views, and functions.</p>
+</li>
+<li>
+<p><strong>Substrait expression conversion no longer takes case sensitivity.</strong> <code>substrait.ConvertExpr(schema, expression, caseSensitive)</code> becomes <code>substrait.ConvertExpr(schema, expression)</code>. Case sensitivity remains part of expression binding.</p>
+</li>
+<li>
+<p><strong>Transform formatting requires the result type and uses the Java-aligned method name.</strong> <code>Transform.ToHumanStr(value)</code> and <code>Transform.ToHumanStrType(resultType, value)</code> are removed. Use <code>Transform.ToHumanString(resultType, value)</code> to format partition values, including timestamps with time zones.</p>
+</li>
+<li>
+<p><strong>Catalogs now require cleanup.</strong> The <code>catalog.Catalog</code> interface includes <code>Close() error</code>. Custom catalog implementations must provide <code>Close</code>, and callers should close catalog instances after use. <code>catalog.Closer</code> is removed. Replace <code>cat.(catalog.Closer)</code> checks with <code>defer cat.Close()</code>; <code>catalog.Catalog</code> already implements <code>io.Closer</code>, so no type assertion is needed.</p>
+</li>
+<li>
+<p><strong><code>table.ErrDataFilesMissing</code> no longer matches <code>table.ErrCommitFailed</code>.</strong> An operation that adds delete files referencing data files that are not live, for example because a concurrent commit removed them, fails with <code>ErrDataFilesMissing</code>. The error is now terminal, like <code>table.ErrCommitDiverged</code>, matching Java's <code>ValidationException</code>, so code that retries when <code>errors.Is(err, table.ErrCommitFailed)</code> no longer retries it. When <code>Transaction.Commit</code> returns it, the error also matches <code>table.ErrTransactionUnusable</code>. Rebuild the delete against the current table instead.</p>
+</li>
+<li>
+<p><strong>Puffin writer property setter renamed.</strong> <code>puffin.Writer.AddProperties</code> is now <code>puffin.Writer.SetProperties</code>. Repeated calls still merge keys; use <code>ClearProperties</code> to clear custom properties before finishing.</p>
+</li>
+<li>
+<p><strong>Orphan file cleanup moved to <code>table/maintenance</code>.</strong> The orphan-cleanup and file-purge API is no longer on <code>table.Table</code>; it now lives in the <code>table/maintenance</code> package as free functions that take the table as their first argument (matching <code>table/compaction</code>). For example, <code>tbl.DeleteOrphanFiles(ctx, ...)</code> becomes <code>maintenance.DeleteOrphanFiles(ctx, tbl, ...)</code>. Because <code>table/maintenance</code> imports <code>table</code> (and not the reverse), this cannot be offered as a deprecation shim on <code>table.Table</code> without an import cycle, so callers must switch to the new package. The following moved from <code>table</code> to <code>table/maintenance</code>:</p>
+<ul>
+<li>Functions (now free functions taking <code>*table.Table</code>): <code>DeleteOrphanFiles</code>, <code>PlanOrphanFiles</code>, <code>ExecuteOrphanCleanup</code>, <code>PurgeFiles</code>.</li>
+<li>Types: <code>OrphanCleanupOption</code>, <code>OrphanCleanupResult</code>, <code>OrphanFile</code>, <code>OrphanCleanupPlan</code>, <code>PrefixMismatchMode</code>.</li>
+<li>Constants: <code>PrefixMismatchError</code>, <code>PrefixMismatchIgnore</code>, <code>PrefixMismatchDelete</code>.</li>
+<li>Option constructors: <code>WithCleanupLocation</code>, <code>WithCleanupFilesOlderThan</code>, <code>WithCleanupDryRun</code>, <code>WithCleanupDeleteFunc</code>, <code>WithCleanupMaxConcurrency</code>, <code>WithPrefixMismatchMode</code>, <code>WithEqualSchemes</code>, <code>WithEqualAuthorities</code>. The four generic names (<code>WithLocation</code>, <code>WithFilesOlderThan</code>, <code>WithDryRun</code>, <code>WithDeleteFunc</code>) gained the <code>WithCleanup</code> prefix for consistency.</li>
+</ul>
+<p>Relatedly, the previously unexported <code>isGCEnabled</code> is now <code>table.IsGCEnabled</code>, so the new package can gate destructive operations on the <code>gc.enabled</code> table property.</p>
+</li>
+<li>
+<p><strong>Metadata tables moved to <code>table/inspect</code>.</strong> <code>Table.Inspect</code> and <code>InspectTable</code> are removed. Each metadata table is now a free function in the <code>table/inspect</code> package that takes the table as its second argument, matching <code>table/maintenance</code>. For example, <code>tbl.Inspect().Snapshots(ctx)</code> becomes <code>inspect.Snapshots(ctx, tbl)</code>. As with <code>table/maintenance</code>, <code>table/inspect</code> imports <code>table</code>, so <code>table.Table</code> cannot keep a deprecation shim. The following moved from <code>table</code> to <code>table/inspect</code>:</p>
+<ul>
+<li>Functions (now free functions taking the context, <code>*table.Table</code> and options): <code>History</code>, <code>Snapshots</code>, <code>Manifests</code>, <code>Refs</code>, <code>MetadataLogEntries</code>, <code>Entries</code>, <code>AllEntries</code>, <code>Files</code>, <code>DataFiles</code>, <code>DeleteFiles</code>, <code>AllFiles</code>, <code>AllDataFiles</code>, <code>AllDeleteFiles</code>, <code>AllManifests</code>, <code>Partitions</code>, <code>PositionDeletes</code>.</li>
+<li>Schema constructors: <code>HistorySchema</code>, <code>SnapshotsSchema</code>, <code>ManifestsSchema</code>, <code>RefsSchema</code>, <code>MetadataLogEntriesSchema</code>, <code>EntriesSchema</code>, <code>AllEntriesSchema</code>, <code>FilesSchema</code>, <code>DataFilesSchema</code>, <code>DeleteFilesSchema</code>, <code>AllFilesSchema</code>, <code>AllDataFilesSchema</code>, <code>AllDeleteFilesSchema</code>, <code>AllManifestsSchema</code>, <code>PartitionsSchema</code>, <code>PositionDeletesSchema</code>.</li>
+<li>Options: <code>InspectOption</code> is now <code>inspect.Option</code>, and <code>WithInspectAllocator</code> is now <code>inspect.WithAllocator</code>.</li>
+</ul>
+<p><code>DiffSnapshotFiles</code> and <code>ValidateSnapshot</code> stay in <code>table</code> as <code>Table</code> methods: <code>tbl.Inspect().DiffSnapshotFiles(ctx, from, to)</code> becomes <code>tbl.DiffSnapshotFiles(ctx, from, to)</code>, and <code>tbl.Inspect().ValidateSnapshot(ctx, id)</code> becomes <code>tbl.ValidateSnapshot(ctx, id)</code>. <code>ManifestProvider.UniqueManifests</code> is newly exported for the <code>all_*</code> tables.</p>
+</li>
+<li>
+<p><strong>Data-file replacement methods renamed.</strong> Use <code>ReplaceDataFilesByPath</code> for string paths. Use <code>ReplaceDataFiles</code> for prebuilt <code>DataFile</code> values instead of <code>ReplaceDataFilesWithDataFiles</code>.</p>
+</li>
+<li>
+<p><code>maintenance.PurgeFiles</code> (previously <code>Table.PurgeFiles</code>) now calls <code>IO.Remove</code> concurrently, with up to 32 calls in flight, when the filesystem does not implement <code>BulkRemovableIO</code>. Custom IO implementations, including those registered with <code>io.Register</code>, must make <code>Remove</code> safe for concurrent use and synchronize any shared mutable state. The bulk deletion path is unchanged.</p>
+</li>
+<li>
+<p><strong>Snapshot summaries report deletion vectors separately.</strong> On v3 tables, DVs are counted under <code>added-dvs</code> and <code>removed-dvs</code> instead of <code>added-position-delete-files</code> and <code>removed-position-delete-files</code>. <code>added-files-size</code> and <code>removed-files-size</code> use each DV's <code>content_size_in_bytes</code> instead of its whole Puffin file, so they go down for commits with DVs. <code>total-files-size</code> is updated from these values. Partition summaries, commit reports and OTel metrics change the same way. Existing snapshots are not rewritten.</p>
+</li>
+<li>
+<p><strong>Deletion vectors identify row positions.</strong> New Puffin blobs list <code>_pos</code> field ID <code>2147483645</code> in <code>fields</code>, matching Iceberg Java. Existing files are unchanged.</p>
+</li>
+<li>
+<p><strong>Partition and sort source accessors renamed.</strong> Replace <code>PartitionField.SourceID()</code> and <code>SortField.SourceID()</code> with <code>FirstSourceID()</code>. Their behavior and serialized fields are unchanged.</p>
+</li>
+<li>
+<p><strong>Row-lineage column predicate renamed.</strong> Use <code>iceberg.IsRowLineageColumn</code> instead of <code>iceberg.IsMetadataColumn</code> to identify <code>_row_id</code> and <code>_last_updated_sequence_number</code>. Use <code>iceberg.IsReservedFieldID</code> to check the full reserved metadata field ID range.</p>
+</li>
+<li>
+<p><strong>File writes and directory walks now take an operation context.</strong> Update <code>WriteFileIO</code> and <code>ListableIO</code> implementations and calls to <code>Create</code>, <code>WriteFile</code>, and <code>WalkDir</code> to pass <code>context.Context</code>; cloud writes and listings use it for cancellation.</p>
+</li>
+<li>
+<p><strong>In and NotIn follow SQL semantics for NULL.</strong> A multi-valued <code>NotIn</code>, <code>NOT(In(...))</code> and <code>NOT(NotIn(...))</code> no longer match rows where the column is NULL, consistent with <code>NotEqual</code>. A predicate under NOT on a column missing from an older data file no longer matches every row of that file; those rows match as a stored NULL would. Java's <code>Evaluator</code> still matches NULL for <code>notEq</code> and <code>notIn</code>, see <a href="https://github.com/apache/iceberg/issues/18701">apache/iceberg#18701</a>.</p>
+</li>
+<li>
+<p><strong>Commit rejections now match <code>table.ErrCommitRejected</code>.</strong> SQL, Glue, Hive and Hadoop failures while preparing metadata, plus REST commit responses 400, 401, 403 and 404, leave transactions committable (after a REST 404, the next <code>Commit</code> fails when it reloads the table). Existing <code>errors.Is</code> matches keep working, but SQL, Glue, Hive and Hadoop rejection messages now start with <code>commit rejected: </code>, so code that matches error text may need updating.</p>
+</li>
+<li>
+<p><strong>Float comparisons against literals beyond the float32 range follow IEEE 754.</strong> On a float32 column, <code>x &lt; 1e100</code> no longer returns NaN, <code>+Inf</code> or NULL rows, and <code>NOT(x &gt; 1e100)</code> no longer returns NULL rows. An infinite literal now binds to a float32 infinity, so <code>x = +Inf</code> matches <code>+Inf</code> rows. Java still folds these comparisons to always true or false, see <a href="https://github.com/apache/iceberg/issues/18700">apache/iceberg#18700</a>.</p>
+</li>
+<li>
+<p><strong>Orphan cleanup refreshes metadata before deletion.</strong> Non-dry-run <code>DeleteOrphanFiles</code> requires a catalog-backed table and refreshes it before planning and again before deleting files. <code>ExecuteOrphanCleanup</code> also refreshes before deleting from a non-empty plan. If a saved plan is stale, refresh or reload the table before planning again. Dry runs still work without a catalog.</p>
+</li>
+<li>
+<p><strong>Position deletes use the data file's partition spec.</strong> After partition spec evolution, <code>Delete</code> on a merge-on-read table wrote v2 position delete files with the current spec instead of the target data file's spec. Scans and re-running <code>Delete</code> on such a table can fail with <code>invalid metadata: position delete file ... uses partition spec N, but data file ... uses partition spec M</code>; some deletes are instead silently missed, so the rows stay visible, and re-running those deletes applies them. New deletes carry the data file's spec. For the mismatch error, remove the delete files whose spec ID differs from their data file's with <code>Transaction.NewRewrite</code> (<code>RewriteFiles.DeleteFile</code>), then re-run those deletes; until then the rows they deleted are visible again.</p>
+</li>
+</ul>
+<h2 id="verifying-and-producing-releases"><a class="header" href="#verifying-and-producing-releases">Verifying and producing releases</a></h2>
+<p>If you are validating an RC or cutting a new release, see:</p>
+<ul>
+<li><a href="./verify-release.html">Verify a release</a> - what to do when a <code>[VOTE]</code> thread is posted on <code>dev@iceberg.apache.org</code>.</li>
+<li><a href="./how-to-release.html">How to release</a> - PMC/committer process for cutting an RC and publishing.</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="glossary.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="verify-release.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="glossary.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="verify-release.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
